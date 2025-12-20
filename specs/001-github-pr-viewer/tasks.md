@@ -18,8 +18,8 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure per plan.md in GitReviewIt/
-- [ ] T002 ⚠️ HUMAN: Add CFBundleURLTypes with gitreviewit custom URL scheme in Info.plist (see HUMAN_HELP_NEEDED.md #1)
+- [X] T001 Create project directory structure per plan.md in GitReviewIt/
+- [X] T002 ⚠️ HUMAN: Add CFBundleURLTypes with gitreviewit custom URL scheme in Info.plist (see HUMAN_HELP_NEEDED.md #1)
 - [ ] T003 Create GitReviewIt/Infrastructure/ directory structure (Networking/, Storage/, OAuth/)
 - [ ] T004 Create GitReviewIt/Features/ directory structure (Authentication/, PullRequests/)
 - [ ] T005 Create GitReviewIt/Shared/ directory structure (Views/, Models/)
