@@ -34,7 +34,7 @@ This document consolidates research findings for implementing a SwiftUI macOS ap
 - Callback handling: Implement via `.onOpenURL` modifier in SwiftUI or AppDelegate
 
 **Security Considerations**:
-- Client secret: For native apps, GitHub treats them as "public clients" (secret cannot be truly protected). Consider GitHub Device Flow for production, but OAuth Web Flow acceptable for MVP given GitHub's security model.
+- OAuth Flow: Using PKCE (Proof Key for Code Exchange) which GitHub supports for native apps. No client secret needed - more secure as there's no secret to protect in the binary.
 - State validation: Critical—reject any callback where state doesn't match the initiated flow
 - Token storage: Must use Keychain with kSecAttrAccessibleAfterFirstUnlock or stricter
 
@@ -409,9 +409,9 @@ struct ContentView: View {
 
 ---
 
-### 8. OAuth Client Secret Management
+### 8. OAuth Flow Selection
 
-**Decision**: Accept client secret embedded in app for MVP; document migration path to Device Flow
+**Decision**: Use PKCE (Proof Key for Code Exchange) - no client secret required
 
 **Rationale**:
 - GitHub treats native apps as "public clients"—secrets can be extracted via reverse engineering
@@ -435,7 +435,7 @@ When upgrading to production:
 1. Implement Device Flow (user sees 8-char code, enters on github.com/device)
 2. Poll `https://github.com/login/oauth/access_token` for token
 3. Update LoginView to show code input UI
-4. Remove embedded client secret
+4. ~~Remove embedded client secret~~ Already using PKCE - no secret!
 
 ---
 

@@ -207,7 +207,7 @@ protocol OAuthManager: Sendable {
 }
 
 protocol GitHubAPI: Sendable {
-    func exchangeCodeForToken(code: String, clientId: String, clientSecret: String) async throws -> GitHubToken
+    func exchangeCodeForToken(code: String, clientId: String, codeVerifier: String) async throws -> GitHubToken
     func fetchUser(token: String) async throws -> AuthenticatedUser
     func fetchReviewRequests(token: String) async throws -> [PullRequest]
 }

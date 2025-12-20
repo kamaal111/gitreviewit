@@ -49,7 +49,7 @@ Add to Info.plist:
 
 ---
 
-## 4. Add GitHub OAuth Credentials (Task T023)
+## 4. Add GitHub OAuth Client ID (Task T023)
 
 **When**: Before running OAuth flow
 
@@ -58,13 +58,18 @@ Create: `GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift`
 ```swift
 enum GitHubOAuthConfig {
     static let clientId = "YOUR_GITHUB_CLIENT_ID"
-    static let clientSecret = "YOUR_GITHUB_CLIENT_SECRET"
     static let callbackURLScheme = "gitreviewit"
     static let scopes = ["repo"]
+    
+    // PKCE support - no client secret needed!
+    static func generateCodeVerifier() -> String
+    static func generateCodeChallenge(from verifier: String) -> String
 }
 ```
 
 **Get credentials**: https://github.com/settings/developers → New OAuth App
+
+**Note**: Using PKCE flow - no client secret required! Just need Client ID.
 
 ---
 
