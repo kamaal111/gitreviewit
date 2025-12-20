@@ -165,7 +165,7 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 **Security Notes**:
 - Must generate and validate a unique state parameter for each OAuth flow to prevent CSRF
 - Access token must be stored in Keychain with appropriate accessibility settings
-- Client secret must be handled carefully; consider using GitHub Device Flow or a lightweight backend proxy if embedding secret in app is unacceptable
+- Using PKCE (Proof Key for Code Exchange) OAuth flow - no client secret needed, designed for native apps
 
 ### GitHub API Endpoints
 
@@ -379,7 +379,7 @@ final class PullRequestListController {
 ## Assumptions
 
 - **GitHub OAuth Client**: Assumes a GitHub OAuth App is registered with appropriate redirect URI (`gitreviewit://oauth-callback` or custom scheme)
-- **Client Secret Handling**: Assumes client secret can be embedded in the app (acceptable for demo/MVP) or will use GitHub Device Flow (which doesn't require a secret)
+- **OAuth Flow**: Uses PKCE (Proof Key for Code Exchange) - no client secret required, more secure for native apps
 - **Scope Decision**: Assumes `repo` scope is acceptable to users for accessing private repo PRs. If user concerns arise, can be scoped down to `public_repo` for public-only access
 - **Token Lifetime**: Assumes GitHub tokens do not expire automatically (they remain valid until revoked), so no refresh token flow is needed
 - **PR Definition**: Assumes "PRs needing review" means PRs where the user is explicitly requested as a reviewer (via `review-requested:<username>` query). Does not include PRs where user is in a requested team or assigned

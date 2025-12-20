@@ -148,3 +148,61 @@ extension HTTPError: LocalizedError {
         }
     }
 }
+
+// MARK: - URLSessionHTTPClient
+
+/// Production implementation of HTTPClient using URLSession
+final class URLSessionHTTPClient: HTTPClient {
+    private let session: URLSession
+    
+    /// Initialize with a custom URLSession (default creates standard configuration)
+    /// - Parameter session: URLSession to use for requests
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
+    /// Performs an HTTP request using URLSession
+    /// - Parameter request: The URLRequest to execute
+    /// - Returns: Response data and HTTPURLResponse
+    /// - Throws: HTTPError for various failure scenarios
+    func perform(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        do {
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw HTTPError.invalidResponse
+            }
+            
+            return (data, httpResponse)
+        } catch let error as HTTPError {
+            throw error
+        } catch let urlError as URLError {
+            throw mapURLError(urlError)
+        } catch {
+            throw HTTPError.unknown(error)
+        }
+    }
+    
+    /// Maps URLError cases to HTTPError cases
+    private func mapURLError(_ error: URLError) -> HTTPError {
+        switch error.code {
+        case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed:
+            return .connectionFailed(error)
+        case .timedOut:
+            return .timeout
+        case .badURL, .unsupportedURL:
+            return .invalidURL
+        case .secureConnectionFailed, .serverCertificateHasBadDate,
+             .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
+             .serverCertificateNotYetValid, .clientCertificateRejected,
+             .clientCertificateRequired:
+            return .sslError(error)
+        case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+            return .dnsError
+        case .cancelled:
+            return .cancelled
+        default:
+            return .unknown(error)
+        }
+    }
+}

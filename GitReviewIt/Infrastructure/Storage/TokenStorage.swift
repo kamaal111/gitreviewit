@@ -84,3 +84,93 @@ extension TokenStorageError: LocalizedError {
         }
     }
 }
+
+// MARK: - KeychainTokenStorage
+
+/// Production implementation of TokenStorage using macOS Keychain
+final class KeychainTokenStorage: TokenStorage {
+    private let service: String
+    private let account: String
+    
+    /// Initialize with custom service and account identifiers
+    /// - Parameters:
+    ///   - service: Keychain service identifier (default: app bundle identifier)
+    ///   - account: Keychain account identifier (default: "github-token")
+    init(
+        service: String = Bundle.main.bundleIdentifier ?? "com.gitreviewit.app",
+        account: String = "github-token"
+    ) {
+        self.service = service
+        self.account = account
+    }
+    
+    /// Store a token in the keychain
+    func store(_ token: String) async throws {
+        guard let tokenData = token.data(using: .utf8) else {
+            throw TokenStorageError.invalidData
+        }
+        
+        // First try to delete any existing token
+        try? await delete()
+        
+        // Create query for storing the token
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecValueData as String: tokenData,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+        
+        let status = SecItemAdd(query as CFDictionary, nil)
+        
+        guard status == errSecSuccess else {
+            throw TokenStorageError.storeFailed(status: status)
+        }
+    }
+    
+    /// Retrieve the stored token from the keychain
+    func retrieve() async throws -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        if status == errSecItemNotFound {
+            return nil
+        }
+        
+        guard status == errSecSuccess else {
+            throw TokenStorageError.retrieveFailed(status: status)
+        }
+        
+        guard let data = result as? Data,
+              let token = String(data: data, encoding: .utf8) else {
+            throw TokenStorageError.invalidData
+        }
+        
+        return token
+    }
+    
+    /// Delete the stored token from the keychain
+    func delete() async throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        
+        let status = SecItemDelete(query as CFDictionary)
+        
+        // Deleting a non-existent item is not an error
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw TokenStorageError.deleteFailed(status: status)
+        }
+    }
+}

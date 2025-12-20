@@ -27,7 +27,7 @@ Before implementing the app, you need to create a GitHub OAuth App to obtain cli
    - **Authorization callback URL**: `gitreviewit://oauth-callback`
 4. Click "Register application"
 5. Note your **Client ID** (publicly visible)
-6. Click "Generate a new client secret" and note the **Client Secret** (keep private)
+6. ~~Click "Generate a new client secret"~~ **Not needed!** We're using PKCE (no secret required)
 
 ### Store Credentials:
 
@@ -36,7 +36,7 @@ Create a file `GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift`:
 ```swift
 enum GitHubOAuthConfig {
     static let clientId = "your_client_id_here"
-    static let clientSecret = "your_client_secret_here"
+    // No client secret needed - using PKCE!
     static let callbackURLScheme = "gitreviewit"
     static let scopes = ["repo"]  // Access to private repositories
 }

@@ -114,3 +114,129 @@ extension OAuthError: LocalizedError {
         }
     }
 }
+
+// MARK: - ASWebAuthenticationSessionOAuthManager
+
+/// Production implementation of OAuthManager using ASWebAuthenticationSession
+final class ASWebAuthenticationSessionOAuthManager: NSObject, OAuthManager {
+    private var currentSession: ASWebAuthenticationSession?
+    private var continuation: CheckedContinuation<String, Error>?
+    
+    /// Start OAuth authorization flow
+    func authorize() async throws -> String {
+        // Note: This implementation requires GitHub OAuth configuration
+        // The actual authorizationURL should be constructed with:
+        // - client_id from GitHubOAuthConfig
+        // - redirect_uri (e.g., "gitreviewit://oauth-callback")
+        // - scope (e.g., "repo,user")
+        // - state (random string for CSRF protection)
+        
+        throw OAuthError.authorizationFailed(reason: "authorize() requires authorizationURL parameter - use a higher-level component")
+    }
+    
+    /// Start OAuth authorization flow with explicit parameters
+    /// - Parameters:
+    ///   - authorizationURL: Complete GitHub OAuth URL with all query parameters
+    ///   - callbackURLScheme: Custom URL scheme for callback (e.g., "gitreviewit")
+    /// - Returns: Authorization code from the callback
+    func authorize(authorizationURL: URL, callbackURLScheme: String) async throws -> String {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+            
+            let session = ASWebAuthenticationSession(
+                url: authorizationURL,
+                callbackURLScheme: callbackURLScheme
+            ) { [weak self] callbackURL, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    self.handleAuthenticationError(error)
+                    return
+                }
+                
+                guard let callbackURL = callbackURL else {
+                    self.continuation?.resume(throwing: OAuthError.invalidCallbackURL)
+                    self.continuation = nil
+                    return
+                }
+                
+                do {
+                    let code = try self.extractAuthorizationCode(from: callbackURL)
+                    self.continuation?.resume(returning: code)
+                    self.continuation = nil
+                } catch {
+                    self.continuation?.resume(throwing: error)
+                    self.continuation = nil
+                }
+            }
+            
+            session.presentationContextProvider = self
+            session.prefersEphemeralWebBrowserSession = false
+            
+            if session.start() {
+                self.currentSession = session
+            } else {
+                continuation.resume(throwing: OAuthError.presentationFailed)
+                self.continuation = nil
+            }
+        }
+    }
+    
+    /// Exchange authorization code for access token
+    func exchangeCodeForToken(code: String) async throws -> String {
+        // Note: This should be handled by GitHubAPIClient
+        // OAuthManager's responsibility ends at obtaining the authorization code
+        throw OAuthError.tokenExchangeFailed(reason: "Token exchange should be handled by GitHubAPIClient")
+    }
+    
+    // MARK: - Private Helpers
+    
+    private func handleAuthenticationError(_ error: Error) {
+        if let asError = error as? ASWebAuthenticationSessionError {
+            switch asError.code {
+            case .canceledLogin:
+                continuation?.resume(throwing: OAuthError.userCancelled)
+            case .presentationContextNotProvided, .presentationContextInvalid:
+                continuation?.resume(throwing: OAuthError.presentationFailed)
+            @unknown default:
+                continuation?.resume(throwing: OAuthError.unknown(error))
+            }
+        } else {
+            continuation?.resume(throwing: OAuthError.unknown(error))
+        }
+        continuation = nil
+    }
+    
+    private func extractAuthorizationCode(from url: URL) throws -> String {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            throw OAuthError.invalidCallbackURL
+        }
+        
+        // Check for error parameter from GitHub
+        if let error = queryItems.first(where: { $0.name == "error" })?.value {
+            let description = queryItems.first(where: { $0.name == "error_description" })?.value
+            throw OAuthError.authorizationFailed(reason: description ?? error)
+        }
+        
+        // Extract authorization code
+        guard let code = queryItems.first(where: { $0.name == "code" })?.value else {
+            throw OAuthError.invalidCallbackURL
+        }
+        
+        return code
+    }
+}
+
+// MARK: - ASWebAuthenticationPresentationContextProviding
+
+extension ASWebAuthenticationSessionOAuthManager: ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        // Return the key window or first window as presentation anchor
+        #if os(macOS)
+        return NSApplication.shared.windows.first { $0.isKeyWindow } ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
+        #else
+        return UIApplication.shared.windows.first { $0.isKeyWindow } ?? UIApplication.shared.windows.first ?? ASPresentationAnchor()
+        #endif
+    }
+}

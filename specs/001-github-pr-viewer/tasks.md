@@ -56,11 +56,11 @@
 
 ### Production Implementations
 
-- [ ] T019 [P] Implement URLSessionHTTPClient conforming to HTTPClient in GitReviewIt/Infrastructure/Networking/HTTPClient.swift
-- [ ] T020 [P] Implement KeychainTokenStorage conforming to TokenStorage in GitReviewIt/Infrastructure/Storage/TokenStorage.swift
-- [ ] T021 [P] Implement ASWebAuthenticationSessionOAuthManager conforming to OAuthManager in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift
-- [ ] T022 Implement GitHubAPIClient conforming to GitHubAPI in GitReviewIt/Infrastructure/Networking/GitHubAPI.swift
-- [ ] T023 ⚠️ HUMAN: Create GitHubOAuthConfig enum with client credentials in GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift (see HUMAN_HELP_NEEDED.md #4)
+- [X] T019 [P] Implement URLSessionHTTPClient conforming to HTTPClient in GitReviewIt/Infrastructure/Networking/HTTPClient.swift
+- [X] T020 [P] Implement KeychainTokenStorage conforming to TokenStorage in GitReviewIt/Infrastructure/Storage/TokenStorage.swift
+- [X] T021 [P] Implement ASWebAuthenticationSessionOAuthManager conforming to OAuthManager in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift
+- [X] T022 Implement GitHubAPIClient conforming to GitHubAPI in GitReviewIt/Infrastructure/Networking/GitHubAPI.swift
+- [ ] T023 Create GitHubOAuthConfig enum with PKCE support (clientId, code verifier/challenge generation) in GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift
 
 ### Test Doubles
 
