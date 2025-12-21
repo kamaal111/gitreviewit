@@ -69,7 +69,7 @@ extension APIError: LocalizedError {
         switch self {
         case .networkError(let error):
             return
-                "We couldn't connect to GitHub. Please check your internet connection and try again.\n\nDetails: \(error.localizedDescription)"
+                "We couldn't connect to GitHub. Please check your internet connection and ensure the API URL is correct.\n\nDetails: \(error.localizedDescription)"
         case .networkUnreachable:
             return "You seem to be offline. Please check your internet connection."
         case .httpError(let statusCode, let message):
