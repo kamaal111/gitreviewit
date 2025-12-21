@@ -33,8 +33,18 @@
   - Prefer `async/await` over completion handlers for asynchronous operations
 
 ## Testing Guidelines
-- Framework: XCTest. Tests are in the Swift Package at `app/GitReviewItApp/Tests/GitReviewItAppTests/`.
-- Naming: `FeatureNameTests`, test methods start with `test...` and describe behavior (e.g., `testLoadingRecentCommitsDisplaysList`).
+- Framework: Swift Testing (using `@Test` attribute). Tests are in the Swift Package at `app/GitReviewItApp/Tests/GitReviewItAppTests/`.
+- **Test Syntax**: Use backtick function names for readable test descriptions:
+  ```swift
+  @Test
+  func `User response fixture decodes to AuthenticatedUser`() throws {
+      // test implementation
+  }
+  ```
+  - **DO**: Use `@Test` with backtick function names containing spaces and natural language
+  - **DON'T**: Use `@Test("description")` with separate function names like `testSomething()`
+  - Benefits: More readable test names in results, eliminates redundant naming, clearer intent
+- Naming: Test structs use `FeatureNameTests` format (e.g., `FixtureTests`, `AuthenticationTests`)
 - Scope: Focus on view models and pure logic; UI verified via snapshots or previews as needed.
 - Running: From Xcode's Test action, via `just test`, or the CLI command above.
 - **No manual target setup needed**: Swift Package manages test targets automatically.

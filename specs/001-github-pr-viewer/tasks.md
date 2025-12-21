@@ -64,16 +64,16 @@
 
 ### Test Doubles
 
-- [ ] T024 [P] Create MockHTTPClient conforming to HTTPClient in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockHTTPClient.swift
-- [ ] T025 [P] Create MockCredentialStorage conforming to CredentialStorage in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockCredentialStorage.swift
+- [X] T024 [P] Create MockHTTPClient conforming to HTTPClient in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockHTTPClient.swift
+- [X] T025 [P] Create MockCredentialStorage conforming to CredentialStorage in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockCredentialStorage.swift
 - [ ] T026 ~~DELETED: MockOAuthManager not needed for PAT authentication~~
-- [ ] T027 [P] Create MockGitHubAPI conforming to GitHubAPI in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift
+- [X] T027 [P] Create MockGitHubAPI conforming to GitHubAPI in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift
 
 ### Test Fixtures
 
-- [ ] T028 [P] Create user-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/user-response.json
-- [ ] T029 [P] Create prs-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/prs-response.json
-- [ ] T030 [P] Create error-responses.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/error-responses.json
+- [X] T028 [P] Create user-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/user-response.json
+- [X] T029 [P] Create prs-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/prs-response.json
+- [X] T030 [P] Create error-responses.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/error-responses.json
 
 ### Shared UI Components
 
