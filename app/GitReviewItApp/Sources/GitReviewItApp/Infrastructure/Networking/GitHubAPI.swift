@@ -204,13 +204,25 @@ final class GitHubAPIClient: GitHubAPI {
             return .unauthorized
         case 403:
             // Check for rate limiting
-            if let rateLimitReset = response.value(forHTTPHeaderField: "X-RateLimit-Reset"),
-                let timestamp = TimeInterval(rateLimitReset)
+            // GitHub sends X-RateLimit-Remaining: 0 when limit is exceeded
+            if let remainingStr = response.value(forHTTPHeaderField: "X-RateLimit-Remaining"),
+                let remaining = Int(remainingStr),
+                remaining == 0
             {
-                let resetDate = Date(timeIntervalSince1970: timestamp)
-                return .rateLimitExceeded(resetAt: resetDate)
+                if let rateLimitReset = response.value(forHTTPHeaderField: "X-RateLimit-Reset"),
+                    let timestamp = TimeInterval(rateLimitReset)
+                {
+                    let resetDate = Date(timeIntervalSince1970: timestamp)
+                    return .rateLimitExceeded(resetAt: resetDate)
+                }
+                return .rateLimitExceeded(resetAt: nil)
             }
-            return .rateLimitExceeded(resetAt: nil)
+
+            // If not a rate limit 403, it's a permission issue
+            if let errorMessage = try? decoder.decode(GitHubErrorResponse.self, from: data) {
+                return .httpError(statusCode: statusCode, message: errorMessage.message)
+            }
+            return .httpError(statusCode: statusCode, message: "Access forbidden")
         case 404:
             return .notFound
         case 422:
@@ -228,7 +240,16 @@ final class GitHubAPIClient: GitHubAPI {
 
     private func mapHTTPErrorToAPIError(_ error: HTTPError) -> APIError {
         switch error {
-        case .connectionFailed, .timeout, .dnsError:
+        case .connectionFailed(let underlyingError):
+            // Check for offline status
+            let nsError = underlyingError as NSError
+            if nsError.domain == NSURLErrorDomain
+                && nsError.code == NSURLErrorNotConnectedToInternet
+            {
+                return .networkUnreachable
+            }
+            return .networkError(underlyingError)
+        case .timeout, .dnsError:
             return .networkError(error)
         case .invalidResponse, .noData:
             return .invalidResponse
