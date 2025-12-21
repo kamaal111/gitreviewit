@@ -11,6 +11,11 @@ import SwiftUI
 /// Checks for existing credentials on launch and shows appropriate view based on auth state.
 struct ContentView: View {
 
+    // MARK: - Dependencies
+    
+    private let githubAPI: GitHubAPI
+    private let credentialStorage: CredentialStorage
+
     // MARK: - State Container
 
     @State private var authContainer: AuthenticationContainer
@@ -21,6 +26,8 @@ struct ContentView: View {
         githubAPI: GitHubAPI = GitHubAPIClient(httpClient: URLSessionHTTPClient()),
         credentialStorage: CredentialStorage = KeychainCredentialStorage()
     ) {
+        self.githubAPI = githubAPI
+        self.credentialStorage = credentialStorage
         self.authContainer = AuthenticationContainer(
             githubAPI: githubAPI,
             credentialStorage: credentialStorage
@@ -37,7 +44,12 @@ struct ContentView: View {
                 LoadingView(message: "Loading...")
             case .authenticated:
                 // User is authenticated - show main app
-                PullRequestListView()
+                PullRequestListView(
+                    container: PullRequestListContainer(
+                        githubAPI: githubAPI,
+                        credentialStorage: credentialStorage
+                    )
+                )
             case .unauthenticated:
                 // User is not authenticated - show login
                 if authContainer.isLoading {
