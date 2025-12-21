@@ -170,18 +170,18 @@
 
 ### Implementation for User Story 4
 
-- [ ] T074 [US4] Enhance APIError with user-friendly LocalizedError descriptions in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/APIError.swift
-- [ ] T075 [US4] Add rate limit detection and reset time display for 403 responses in GitHubAPIClient
-- [ ] T076 [US4] Add network unreachable error handling in URLSessionHTTPClient
-- [ ] T077 [US4] Enhance ErrorView with specific error messages based on APIError type in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Views/ErrorView.swift
-- [ ] T078 [US4] Add retry button functionality in ErrorView
-- [ ] T079 [US4] Add error display in AuthenticationContainer for PAT validation failures
-- [ ] T080 [US4] Add connection status checking before network operations
-- [ ] T081 [US4] Create ErrorHandlingTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/ErrorHandlingTests.swift
-- [ ] T082 [US4] Add test for network failure error display
-- [ ] T083 [US4] Add test for rate limit error with reset time
-- [ ] T084 [US4] Add test for invalid response error handling
-- [ ] T085 [US4] Add test for retry functionality after transient errors
+- [X] T074 [US4] Enhance APIError with user-friendly LocalizedError descriptions in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/APIError.swift
+- [X] T075 [US4] Add rate limit detection and reset time display for 403 responses in GitHubAPIClient
+- [X] T076 [US4] Add network unreachable error handling in URLSessionHTTPClient
+- [X] T077 [US4] Enhance ErrorView with specific error messages based on APIError type in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Views/ErrorView.swift
+- [X] T078 [US4] Add retry button functionality in ErrorView
+- [X] T079 [US4] Add error display in AuthenticationContainer for PAT validation failures
+- [X] T080 [US4] Add connection status checking before network operations
+- [X] T081 [US4] Create ErrorHandlingTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/ErrorHandlingTests.swift
+- [X] T082 [US4] Add test for network failure error display
+- [X] T083 [US4] Add test for rate limit error with reset time
+- [X] T084 [US4] Add test for invalid response error handling
+- [X] T085 [US4] Add test for retry functionality after transient errors
 
 **Checkpoint**: User Story 4 complete - app handles all error scenarios gracefully
 

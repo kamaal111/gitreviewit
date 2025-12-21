@@ -44,7 +44,11 @@
   - **DO**: Use `@Test` with backtick function names containing spaces and natural language
   - **DON'T**: Use `@Test("description")` with separate function names like `testSomething()`
   - Benefits: More readable test names in results, eliminates redundant naming, clearer intent
-- **No Conditional Logic**: Tests must be linear and declarative. Avoid `if`, `guard`, or `switch` statements to verify outcomes. Use `#expect` directly with equality checks to assert state. If conditional logic seems necessary, the test or the type's `Equatable` conformance likely needs refactoring. Tests should read like documentation.
+- **No Conditional Logic**: Tests must be linear and declarative.
+  - **NEVER** use `if`, `guard`, `switch`, or `if case` statements to verify outcomes. Conditional test logic hides failures and makes tests hard to read.
+  - **ALWAYS** use `#expect` directly with equality checks to assert state.
+  - If a type is an enum with associated values, ensure it conforms to `Equatable` so you can compare it directly: `#expect(state == .loaded(value))`.
+  - If conditional logic seems necessary, the test or the type's `Equatable` conformance likely needs refactoring. Tests should read like documentation.
 - Naming: Test structs use `FeatureNameTests` format (e.g., `FixtureTests`, `AuthenticationTests`)
 - Scope: Focus on view models and pure logic; UI verified via snapshots or previews as needed.
 - Running: From Xcode's Test action, via `just test`, or the CLI command above.

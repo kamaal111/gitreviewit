@@ -4,37 +4,42 @@ import Foundation
 enum APIError: Error, Equatable {
     /// The HTTP request failed with a network-level error
     case networkError(Error)
-    
+
+    /// The device is not connected to the internet
+    case networkUnreachable
+
     /// The server returned an error status code
     case httpError(statusCode: Int, message: String?)
-    
+
     /// Authentication failed - token is invalid or expired
     case unauthorized
-    
+
     /// Rate limit exceeded - includes reset time if available
     case rateLimitExceeded(resetAt: Date?)
-    
+
     /// The response could not be decoded
     case invalidResponse
-    
+
     /// The response JSON could not be parsed into expected model
     case decodingError(Error)
-    
+
     /// The endpoint or resource was not found
     case notFound
-    
+
     /// Server error (5xx status codes)
     case serverError(statusCode: Int)
-    
+
     /// Unexpected error that doesn't fit other categories
     case unknown(Error)
-    
+
     // MARK: - Equatable Conformance
-    
+
     static func == (lhs: APIError, rhs: APIError) -> Bool {
         switch (lhs, rhs) {
         case (.networkError(let lhsError), .networkError(let rhsError)):
             return lhsError.localizedDescription == rhsError.localizedDescription
+        case (.networkUnreachable, .networkUnreachable):
+            return true
         case (.httpError(let lhsCode, let lhsMsg), .httpError(let rhsCode, let rhsMsg)):
             return lhsCode == rhsCode && lhsMsg == rhsMsg
         case (.unauthorized, .unauthorized):
@@ -63,44 +68,52 @@ extension APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .networkError(let error):
-            return "Network connection failed: \(error.localizedDescription)"
+            return
+                "We couldn't connect to GitHub. Please check your internet connection and try again.\n\nDetails: \(error.localizedDescription)"
+        case .networkUnreachable:
+            return "You seem to be offline. Please check your internet connection."
         case .httpError(let statusCode, let message):
             if let message = message {
-                return "Server error (\(statusCode)): \(message)"
+                return "GitHub returned an error (\(statusCode)): \(message)"
             }
-            return "Server returned error code \(statusCode)"
+            return "GitHub returned an error (Status: \(statusCode))"
         case .unauthorized:
-            return "Authentication failed. Please log in again."
+            return "Your session has expired or your token is invalid. Please sign in again."
         case .rateLimitExceeded(let resetAt):
             if let resetAt = resetAt {
                 let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                return "Rate limit exceeded. Try again after \(formatter.string(from: resetAt))."
+                formatter.timeStyle = .medium
+                formatter.dateStyle = .none
+                return
+                    "You've reached the GitHub API rate limit. Your quota will reset at \(formatter.string(from: resetAt))."
             }
-            return "Rate limit exceeded. Please try again later."
+            return
+                "You've reached the GitHub API rate limit. Please wait a few minutes before trying again."
         case .invalidResponse:
-            return "Received invalid response from server."
+            return "We received an invalid response from GitHub. Please try again later."
         case .decodingError:
-            return "Failed to parse server response."
+            return
+                "We encountered an issue processing the data from GitHub. Please try again later."
         case .notFound:
-            return "The requested resource was not found."
-        case .serverError(let statusCode):
-            return "Server error (\(statusCode)). Please try again later."
+            return
+                "The requested resource could not be found. Please check your permissions and try again."
+        case .serverError:
+            return "GitHub is experiencing technical difficulties. Please try again later."
         case .unknown(let error):
             return "An unexpected error occurred: \(error.localizedDescription)"
         }
     }
-    
+
     var recoverySuggestion: String? {
         switch self {
-        case .networkError:
-            return "Check your internet connection and try again."
+        case .networkError, .networkUnreachable:
+            return "Check your Wi-Fi or cellular data connection."
         case .unauthorized:
-            return "Sign out and sign in again with your GitHub account."
+            return "Go to Settings to update your Personal Access Token."
         case .rateLimitExceeded:
-            return "GitHub API rate limit reached. Wait a few minutes before trying again."
+            return "Wait until the reset time or check your token permissions."
         case .serverError:
-            return "GitHub's servers are experiencing issues. Try again in a few moments."
+            return "Check GitHub Status (githubstatus.com) for updates."
         default:
             return nil
         }
