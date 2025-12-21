@@ -66,7 +66,7 @@
 
 - [X] T024 [P] Create MockHTTPClient conforming to HTTPClient in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockHTTPClient.swift
 - [X] T025 [P] Create MockCredentialStorage conforming to CredentialStorage in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockCredentialStorage.swift
-- [ ] T026 ~~DELETED: MockOAuthManager not needed for PAT authentication~~
+- [X] T026 ~~DELETED: MockOAuthManager not needed for PAT authentication~~
 - [X] T027 [P] Create MockGitHubAPI conforming to GitHubAPI in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift
 
 ### Test Fixtures
@@ -116,24 +116,24 @@
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Create PullRequestListContainer (@Observable) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T047 [US2] Implement loadPullRequests() method fetching from GitHubAPI (using stored token + baseURL) in PullRequestListContainer
-- [ ] T048 [US2] Implement retry() method in PullRequestListContainer
-- [ ] T049 [US2] Add loading/error/empty state management in PullRequestListContainer
-- [ ] T050 [US2] Create PullRequestRow view displaying repo, title, author, timestamp in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift
-- [ ] T051 [US2] Create PullRequestListView with List of PullRequestRow in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestListView.swift
-- [ ] T052 [US2] Connect PullRequestListView to PullRequestListContainer using @State
-- [ ] T053 [US2] Implement .task modifier in PullRequestListView to call loadPullRequests() on appear
-- [ ] T054 [US2] Add loading state display in PullRequestListView
-- [ ] T055 [US2] Add empty state message when no PRs in PullRequestListView
-- [ ] T056 [US2] Add error state with retry button in PullRequestListView
-- [ ] T057 [US2] Implement tap handler to open PR URL in Safari using Link or openURL
-- [ ] T058 [US2] Format relative timestamps using RelativeDateTimeFormatter in PullRequestRow
-- [ ] T059 [US2] Create PullRequestListTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PullRequestListTests.swift
-- [ ] T060 [US2] Add test for successful PR list fetch and display
-- [ ] T061 [US2] Add test for empty state when no PRs
-- [ ] T062 [US2] Add test for loading state display
-- [ ] T063 [US2] Add test for error state and retry functionality
+- [X] T046 [US2] Create PullRequestListContainer (@Observable) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T047 [US2] Implement loadPullRequests() method fetching from GitHubAPI (using stored token + baseURL) in PullRequestListContainer
+- [X] T048 [US2] Implement retry() method in PullRequestListContainer
+- [X] T049 [US2] Add loading/error/empty state management in PullRequestListContainer
+- [X] T050 [US2] Create PullRequestRow view displaying repo, title, author, timestamp in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift
+- [X] T051 [US2] Create PullRequestListView with List of PullRequestRow in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestListView.swift
+- [X] T052 [US2] Connect PullRequestListView to PullRequestListContainer using @State
+- [X] T053 [US2] Implement .task modifier in PullRequestListView to call loadPullRequests() on appear
+- [X] T054 [US2] Add loading state display in PullRequestListView
+- [X] T055 [US2] Add empty state message when no PRs in PullRequestListView
+- [X] T056 [US2] Add error state with retry button in PullRequestListView
+- [X] T057 [US2] Implement tap handler to open PR URL in Safari using Link or openURL
+- [X] T058 [US2] Format relative timestamps using RelativeDateTimeFormatter in PullRequestRow
+- [X] T059 [US2] Create PullRequestListTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PullRequestListTests.swift
+- [X] T060 [US2] Add test for successful PR list fetch and display
+- [X] T061 [US2] Add test for empty state when no PRs
+- [X] T062 [US2] Add test for loading state display
+- [X] T063 [US2] Add test for error state and retry functionality
 
 **Checkpoint**: User Story 2 complete - users can see and interact with PR list
 
