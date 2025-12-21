@@ -12,7 +12,7 @@ import SwiftUI
 struct ContentView: View {
 
     // MARK: - Dependencies
-    
+
     private let githubAPI: GitHubAPI
     private let credentialStorage: CredentialStorage
 
@@ -55,11 +55,7 @@ struct ContentView: View {
                 )
             case .unauthenticated:
                 // User is not authenticated - show login
-                if authContainer.isLoading {
-                    LoadingView(message: "Signing in...")
-                } else {
-                    LoginView(container: authContainer)
-                }
+                LoginView(container: authContainer)
             }
         }
         .task {

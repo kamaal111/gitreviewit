@@ -159,10 +159,7 @@ struct LoginView: View {
         }
 
         // Validate baseURL format
-        guard let url = URL(string: baseURL),
-            url.scheme == "http" || url.scheme == "https",
-            url.host != nil
-        else {
+        guard URLValidator.isValid(baseURL) else {
             validationMessage = "Invalid URL format. Must start with http:// or https://"
             showValidationError = true
             return false
