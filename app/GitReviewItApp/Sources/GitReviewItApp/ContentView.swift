@@ -48,7 +48,10 @@ struct ContentView: View {
                     container: PullRequestListContainer(
                         githubAPI: githubAPI,
                         credentialStorage: credentialStorage
-                    )
+                    ),
+                    onLogout: {
+                        await authContainer.logout()
+                    }
                 )
             case .unauthenticated:
                 // User is not authenticated - show login
