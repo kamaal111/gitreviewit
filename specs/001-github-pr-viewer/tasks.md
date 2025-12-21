@@ -195,15 +195,15 @@
 
 ### Implementation for User Story 5
 
-- [ ] T086 [US5] Add logout button or menu item in PullRequestListView
-- [ ] T087 [US5] Connect logout action to AuthenticationContainer.logout() method
-- [ ] T088 [US5] Verify credential deletion from Keychain in logout() method
-- [ ] T089 [US5] Add navigation back to LoginView after logout in ContentView
-- [ ] T090 [US5] Clear all cached user data on logout in AuthenticationContainer
-- [ ] T091 [US5] Create LogoutTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/LogoutTests.swift
-- [ ] T092 [US5] Add test for successful logout and credential removal
-- [ ] T093 [US5] Add test for navigation to login screen after logout
-- [ ] T094 [US5] Add test for app relaunch after logout shows login screen
+- [X] T086 [US5] Add logout button or menu item in PullRequestListView
+- [X] T087 [US5] Connect logout action to AuthenticationContainer.logout() method
+- [X] T088 [US5] Verify credential deletion from Keychain in logout() method
+- [X] T089 [US5] Add navigation back to LoginView after logout in ContentView
+- [X] T090 [US5] Clear all cached user data on logout in AuthenticationContainer
+- [X] T091 [US5] Create LogoutTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/LogoutTests.swift
+- [X] T092 [US5] Add test for successful logout and credential removal
+- [X] T093 [US5] Add test for navigation to login screen after logout
+- [X] T094 [US5] Add test for app relaunch after logout shows login screen
 
 **Checkpoint**: User Story 5 complete - users can securely log out
 

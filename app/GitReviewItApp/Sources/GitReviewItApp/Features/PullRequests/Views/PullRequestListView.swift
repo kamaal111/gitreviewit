@@ -2,9 +2,11 @@ import SwiftUI
 
 struct PullRequestListView: View {
     @State private var container: PullRequestListContainer
+    private let onLogout: () async -> Void
     
-    init(container: PullRequestListContainer) {
+    init(container: PullRequestListContainer, onLogout: @escaping () async -> Void) {
         _container = State(wrappedValue: container)
+        self.onLogout = onLogout
     }
     
     var body: some View {
@@ -40,6 +42,17 @@ struct PullRequestListView: View {
         .task {
             if case .idle = container.loadingState {
                 await container.loadPullRequests()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    Task {
+                        await onLogout()
+                    }
+                }) {
+                    Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+                }
             }
         }
     }
