@@ -1,48 +1,32 @@
 # Developer Quickstart Guide
 
 **Feature**: 001-github-pr-viewer  
-**Date**: December 20, 2025  
+**Date**: December 21, 2025  
 **Target Audience**: Developers implementing the GitHub PR Review Viewer MVP
 
 ## Prerequisites
 
 - Xcode 16.0+ (for Swift 6.0 support)
 - macOS 15.0+ (for running the app)
-- GitHub account (for testing OAuth and API)
-- GitHub OAuth App credentials (client ID and secret)
+- GitHub account (for testing API)
+- GitHub Personal Access Token (PAT) (Classic or Fine-grained)
 
 ---
 
-## GitHub OAuth App Setup
+## Personal Access Token Setup
 
-Before implementing the app, you need to create a GitHub OAuth App to obtain client credentials.
+This app uses Personal Access Tokens (PAT) for authentication, which supports both GitHub.com and GitHub Enterprise instances.
 
 ### Steps:
 
-1. Go to https://github.com/settings/developers
-2. Click "New OAuth App"
-3. Fill in the form:
-   - **Application name**: GitReviewIt (Dev)
-   - **Homepage URL**: https://github.com/kamaal111/GitReviewIt
-   - **Authorization callback URL**: `gitreviewit://oauth-callback`
-4. Click "Register application"
-5. Note your **Client ID** (publicly visible)
-6. ~~Click "Generate a new client secret"~~ **Not needed!** We're using PKCE (no secret required)
-
-### Store Credentials:
-
-Create a file `GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift`:
-
-```swift
-enum GitHubOAuthConfig {
-    static let clientId = "your_client_id_here"
-    // No client secret needed - using PKCE!
-    static let callbackURLScheme = "gitreviewit"
-    static let scopes = ["repo"]  // Access to private repositories
-}
-```
-
-⚠️ **Security Note**: For MVP, embedding the secret is acceptable. For production, migrate to GitHub Device Flow to eliminate the secret.
+1. Go to https://github.com/settings/tokens
+2. Click "Generate new token" (Classic recommended for MVP simplicity, or Fine-grained)
+3. **Scopes Required**:
+   - `repo` (Full control of private repositories) - needed to read PRs and user info
+   - `read:org` (Read org and team membership) - needed for team review requests
+   - `user` (Read all user profile data)
+4. Copy your generated token
+5. (Optional) For GitHub Enterprise, ensure you know your API base URL (e.g., `https://github.company.com/api/v3`)
 
 ---
 
@@ -54,18 +38,18 @@ GitReviewIt/
 │   ├── Authentication/
 │   │   ├── Views/          # LoginView
 │   │   ├── State/          # AuthenticationContainer
-│   │   └── Models/         # GitHubToken, AuthenticatedUser
+│   │   └── Models/         # GitHubCredentials, AuthenticatedUser, Team
 │   └── PullRequests/
 │       ├── Views/          # PullRequestListView, PullRequestRow
 │       ├── State/          # PullRequestListContainer
 │       └── Models/         # PullRequest
 ├── Shared/
 │   ├── Views/              # LoadingView, ErrorView
-│   └── Models/             # APIError, LoadingState
+│   ├── Models/             # APIError, LoadingState
+│   └── Utilities/          # URLValidator
 ├── Infrastructure/
 │   ├── Networking/         # HTTPClient, GitHubAPI
-│   ├── Storage/            # TokenStorage (Keychain)
-│   └── OAuth/              # OAuthManager, GitHubOAuthConfig
+│   └── Storage/            # CredentialStorage (Keychain)
 ├── GitReviewItApp.swift    # App entry point
 └── ContentView.swift       # Root view with navigation
 
@@ -88,17 +72,12 @@ Follow this order to build the app incrementally with tests at each step:
 - Implement `URLSessionHTTPClient` (wraps URLSession)
 - Create `MockHTTPClient` in tests with fixture loading
 
-**b. TokenStorage Protocol + Implementation**
-- Define `TokenStorage` protocol in `Infrastructure/Storage/TokenStorage.swift`
-- Implement `KeychainTokenStorage` (uses Security framework)
-- Create `MockTokenStorage` in tests (in-memory dictionary)
+**b. CredentialStorage Protocol + Implementation**
+- Define `CredentialStorage` protocol in `Infrastructure/Storage/CredentialStorage.swift`
+- Implement `KeychainCredentialStorage` (uses Security framework)
+- Create `MockCredentialStorage` in tests (in-memory)
 
-**c. OAuthManager Protocol + Implementation**
-- Define `OAuthManager` protocol in `Infrastructure/OAuth/OAuthManager.swift`
-- Implement `ASWebAuthenticationSessionOAuthManager`
-- Create `MockOAuthManager` in tests (returns predetermined code)
-
-**d. GitHubAPI Protocol + Implementation**
+**c. GitHubAPI Protocol + Implementation**
 - Define `GitHubAPI` protocol in `Infrastructure/Networking/GitHubAPI.swift`
 - Implement `GitHubAPIClient` (uses HTTPClient for requests)
 - Create `MockGitHubAPI` in tests
@@ -110,7 +89,7 @@ Follow this order to build the app incrementally with tests at each step:
 - `LoadingState<T>` enum in `Shared/Models/LoadingState.swift`
 
 **b. Domain Entities**
-- `GitHubToken` struct in `Features/Authentication/Models/GitHubToken.swift`
+- `GitHubCredentials` struct in `Features/Authentication/Models/GitHubCredentials.swift`
 - `AuthenticatedUser` struct in `Features/Authentication/Models/AuthenticatedUser.swift`
 - `PullRequest` struct in `Features/PullRequests/Models/PullRequest.swift`
 
@@ -118,7 +97,7 @@ Follow this order to build the app incrementally with tests at each step:
 
 **a. AuthenticationContainer**
 - Create `@Observable` class in `Features/Authentication/State/AuthenticationContainer.swift`
-- Implement methods: `startOAuth()`, `completeOAuth(code:)`, `checkExistingToken()`, `logout()`
+- Implement methods: `validateAndSaveCredentials(token:baseURL:)`, `checkExistingCredentials()`, `logout()`
 - Add integration tests in `AuthenticationFlowTests`
 
 **b. PullRequestListContainer**
@@ -134,9 +113,9 @@ Follow this order to build the app incrementally with tests at each step:
 
 **b. Authentication Views**
 - `LoginView` in `Features/Authentication/Views/LoginView.swift`
-  - Shows "Sign in with GitHub" button
+  - Shows PAT input field and optional Base URL field
   - Owns AuthenticationContainer via @State
-  - Calls `startOAuth()` on button tap
+  - Calls `validateAndSaveCredentials()` on button tap
 
 **c. Pull Request Views**
 - `PullRequestRow` in `Features/PullRequests/Views/PullRequestRow.swift`
@@ -148,16 +127,12 @@ Follow this order to build the app incrementally with tests at each step:
 
 **d. Root Navigation**
 - Update `ContentView.swift` to switch between LoginView and PullRequestListView
-- Create `AppContainer` to manage navigation state
-- Check token presence at launch
+- Check credentials at launch via `checkExistingCredentials()`
 
 ### 5. App Configuration
 
 **a. Info.plist Updates**
-- Add `CFBundleURLTypes` with `gitreviewit` scheme for OAuth callback
-
-**b. URL Handling**
-- Implement `.onOpenURL` in ContentView to capture OAuth callback
+- Minimal updates needed (URL schemes removed as OAuth is not used)
 
 ---
 
@@ -167,31 +142,28 @@ Follow this order to build the app incrementally with tests at each step:
 
 ```swift
 // Container owns protocols, not concrete types
+@MainActor
 @Observable
 final class AuthenticationContainer {
-    private let oauthManager: OAuthManager
     private let githubAPI: GitHubAPI
-    private let tokenStorage: TokenStorage
+    private let credentialStorage: CredentialStorage
     
-    init(oauthManager: OAuthManager, githubAPI: GitHubAPI, tokenStorage: TokenStorage) {
-        self.oauthManager = oauthManager
+    init(githubAPI: GitHubAPI, credentialStorage: CredentialStorage) {
         self.githubAPI = githubAPI
-        self.tokenStorage = tokenStorage
+        self.credentialStorage = credentialStorage
     }
 }
 
 // Production usage
 let container = AuthenticationContainer(
-    oauthManager: ASWebAuthenticationSessionOAuthManager(),
     githubAPI: GitHubAPIClient(httpClient: URLSessionHTTPClient()),
-    tokenStorage: KeychainTokenStorage()
+    credentialStorage: KeychainCredentialStorage()
 )
 
 // Test usage
 let container = AuthenticationContainer(
-    oauthManager: MockOAuthManager(codeToReturn: "test_code"),
     githubAPI: MockGitHubAPI(fixtures: ...),
-    tokenStorage: MockTokenStorage()
+    credentialStorage: MockCredentialStorage()
 )
 ```
 
@@ -201,11 +173,11 @@ let container = AuthenticationContainer(
 struct PullRequestListView: View {
     @State private var container: PullRequestListContainer
     
-    init(githubAPI: GitHubAPI, tokenStorage: TokenStorage) {
+    init(githubAPI: GitHubAPI, credentialStorage: CredentialStorage) {
         // Inject dependencies, @State owns lifecycle
         _container = State(initialValue: PullRequestListContainer(
             githubAPI: githubAPI,
-            tokenStorage: tokenStorage
+            credentialStorage: credentialStorage
         ))
     }
     
@@ -231,12 +203,13 @@ func setLoading(_ loading: Bool) { ... }
 // ✅ Good: Intent-based methods
 func loadPullRequests() async { ... }
 func retry() async { ... }
-func openPR(url: URL) { ... }
+func validateAndSaveCredentials(token: String, baseURL: String) async { ... }
 ```
 
 ### Pattern 4: LoadingState for Async Operations
 
 ```swift
+@MainActor
 @Observable
 final class PullRequestListContainer {
     private(set) var loadingState: LoadingState<[PullRequest]> = .idle
@@ -244,7 +217,7 @@ final class PullRequestListContainer {
     func loadPullRequests() async {
         loadingState = .loading
         do {
-            let prs = try await githubAPI.fetchReviewRequests(token: ...)
+            let prs = try await githubAPI.fetchReviewRequests(credentials: ...)
             loadingState = .loaded(prs)
         } catch let error as APIError {
             loadingState = .failed(error)
@@ -277,28 +250,24 @@ var body: some View {
 final class AuthenticationFlowTests: XCTestCase {
     func testSuccessfulLoginFlow() async throws {
         // Arrange: Set up mocks with fixtures
-        let mockOAuth = MockOAuthManager(codeToReturn: "test_code")
         let mockHTTP = MockHTTPClient()
-        mockHTTP.stubResponse(for: "/login/oauth/access_token", fixture: "token-response.json")
         mockHTTP.stubResponse(for: "/user", fixture: "user-response.json")
         
-        let tokenStorage = MockTokenStorage()
+        let credentialStorage = MockCredentialStorage()
         let githubAPI = GitHubAPIClient(httpClient: mockHTTP)
         
         let container = AuthenticationContainer(
-            oauthManager: mockOAuth,
             githubAPI: githubAPI,
-            tokenStorage: tokenStorage
+            credentialStorage: credentialStorage
         )
         
-        // Act: Execute OAuth flow
-        await container.startOAuth()
-        await container.completeOAuth(code: "test_code")
+        // Act: Execute Login flow
+        await container.validateAndSaveCredentials(token: "test_token")
         
         // Assert: Verify state transitions and token storage
-        XCTAssertEqual(container.authState, .authenticated)
-        XCTAssertNotNil(try await tokenStorage.loadToken())
-        XCTAssertEqual(container.user?.login, "octocat")
+        XCTAssertTrue(container.authState.isAuthenticated)
+        XCTAssertNotNil(try await credentialStorage.retrieve())
+        XCTAssertEqual(container.authState.user?.login, "octocat")
     }
     
     func testTokenExpirationHandling() async throws {
@@ -306,11 +275,11 @@ final class AuthenticationFlowTests: XCTestCase {
         let mockHTTP = MockHTTPClient()
         mockHTTP.stubResponse(for: "/search/issues", statusCode: 401, body: Data())
         
-        let tokenStorage = MockTokenStorage()
-        try await tokenStorage.saveToken("expired_token")
+        let credentialStorage = MockCredentialStorage()
+        try await credentialStorage.store(GitHubCredentials(token: "expired", baseURL: "https://api.github.com"))
         
         let githubAPI = GitHubAPIClient(httpClient: mockHTTP)
-        let container = PullRequestListContainer(githubAPI: githubAPI, tokenStorage: tokenStorage)
+        let container = PullRequestListContainer(githubAPI: githubAPI, credentialStorage: credentialStorage)
         
         // Act: Load PRs with expired token
         await container.loadPullRequests()
@@ -322,22 +291,13 @@ final class AuthenticationFlowTests: XCTestCase {
             return
         }
         
-        // Token should be cleared
-        XCTAssertNil(try await tokenStorage.loadToken())
+        // Token should be cleared (handled by AuthenticationContainer in real app, 
+        // or by container detecting 401 and notifying parent)
     }
 }
 ```
 
 ### Fixture Files (GitReviewItTests/Fixtures/)
-
-**token-response.json**:
-```json
-{
-  "access_token": "gho_test_token_abc123",
-  "token_type": "bearer",
-  "scope": "repo"
-}
-```
 
 **user-response.json**:
 ```json
@@ -375,8 +335,8 @@ final class AuthenticationFlowTests: XCTestCase {
 1. Open `GitReviewIt.xcodeproj` in Xcode
 2. Select the GitReviewIt scheme and target macOS
 3. Build and run (Cmd+R)
-4. Click "Sign in with GitHub" to start OAuth flow
-5. Authorize the app in the browser
+4. Enter your GitHub Personal Access Token (and custom Base URL if using GHE)
+5. Click "Sign In" to validate token and load profile
 6. View your PRs awaiting review
 
 ---
@@ -385,7 +345,9 @@ final class AuthenticationFlowTests: XCTestCase {
 
 ```bash
 # Run all tests
-xcodebuild test -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS'
+cd app && just test
+# OR
+cd app && xcodebuild test -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS'
 
 # Or in Xcode: Cmd+U
 ```
@@ -394,18 +356,9 @@ xcodebuild test -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 
 
 ## Common Pitfalls & Solutions
 
-### Problem: ASWebAuthenticationSession doesn't present
-
-**Solution**: Ensure your app has a valid `presentationContextProvider`. The session requires a window to anchor to.
-
-```swift
-let session = ASWebAuthenticationSession(...)
-session.presentationContextProvider = self  // Must conform to ASWebAuthenticationPresentationContextProviding
-```
-
 ### Problem: Keychain operations fail with errSecItemNotFound
 
-**Solution**: This is expected when no token exists. Don't treat it as an error—return `nil` from `loadToken()`.
+**Solution**: This is expected when no token exists. Don't treat it as an error—return `nil` from `retrieve()`.
 
 ```swift
 let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -427,6 +380,10 @@ components.queryItems = [
 ]
 let url = components.url!
 ```
+
+### Problem: GitHub Enterprise URL issues
+
+**Solution**: Ensure the Base URL provided by the user does not have a trailing slash and includes the API path (e.g. `/api/v3` for GHE). The app should handle trimming trailing slashes, but correct path suffix is required.
 
 ### Problem: SwiftUI view not updating when state changes
 
@@ -453,7 +410,6 @@ struct MyView: View {
 - [ ] Cache avatar images
 - [ ] Display PR description and labels
 - [ ] Add filtering/sorting options
-- [ ] Implement GitHub Device Flow for production
 - [ ] Add multi-account support
 - [ ] Expand to iOS and iPadOS
 
@@ -461,13 +417,11 @@ struct MyView: View {
 
 ## Resources
 
-- [GitHub OAuth Documentation](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps)
 - [GitHub REST API Documentation](https://docs.github.com/en/rest)
 - [SwiftUI Observation Documentation](https://developer.apple.com/documentation/observation)
-- [ASWebAuthenticationSession Documentation](https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession)
 - [Keychain Services Documentation](https://developer.apple.com/documentation/security/keychain_services)
 
 ---
 
-**Last Updated**: December 20, 2025  
+**Last Updated**: December 21, 2025  
 **Maintainer**: Development Team
