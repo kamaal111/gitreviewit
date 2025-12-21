@@ -18,12 +18,12 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [X] T001 Create project directory structure per plan.md in GitReviewIt/
-- [X] T002 ⚠️ HUMAN: Add CFBundleURLTypes with gitreviewit custom URL scheme in Info.plist (see HUMAN_HELP_NEEDED.md #1)
-- [X] T003 Create GitReviewIt/Infrastructure/ directory structure (Networking/, Storage/, OAuth/)
-- [X] T004 Create GitReviewIt/Features/ directory structure (Authentication/, PullRequests/)
-- [X] T005 Create GitReviewIt/Shared/ directory structure (Views/, Models/)
-- [X] T006 Create GitReviewItTests/ directory structure (IntegrationTests/, TestDoubles/, Fixtures/)
+- [X] T001 Create project directory structure per plan.md in app/GitReviewItApp/
+- [X] T002 ~~DELETED: URL scheme not needed for PAT authentication~~
+- [X] T003 Create app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/ directory structure (Networking/, Storage/)
+- [X] T004 Create app/GitReviewItApp/Sources/GitReviewItApp/Features/ directory structure (Authentication/, PullRequests/)
+- [X] T005 Create app/GitReviewItApp/Sources/GitReviewItApp/Shared/ directory structure (Views/, Models/)
+- [X] T006 Create app/GitReviewItApp/Tests/GitReviewItAppTests/ directory structure (IntegrationTests/, TestDoubles/, Fixtures/)
 
 ---
 
@@ -35,50 +35,50 @@
 
 ### Error Types & Models
 
-- [X] T007 [P] Create APIError enum in GitReviewIt/Shared/Models/APIError.swift
-- [X] T008 [P] Create LoadingState generic enum in GitReviewIt/Shared/Models/LoadingState.swift
-- [X] T009 [P] Create TokenStorageError enum in GitReviewIt/Infrastructure/Storage/TokenStorage.swift
-- [X] T010 [P] Create OAuthError enum in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift
-- [X] T011 [P] Create HTTPError enum in GitReviewIt/Infrastructure/Networking/HTTPClient.swift
+- [X] T007 [P] Create APIError enum in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/APIError.swift
+- [X] T008 [P] Create LoadingState generic enum in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/LoadingState.swift
+- [X] T009 [P] [REWORK] Rename to CredentialStorageError enum in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Storage/CredentialStorage.swift
+- [X] T010 ~~DELETED: OAuthError not needed for PAT authentication~~
+- [X] T011 [P] Create HTTPError enum in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/HTTPClient.swift
 
 ### Protocol Definitions
 
-- [X] T012 [P] Define HTTPClient protocol in GitReviewIt/Infrastructure/Networking/HTTPClient.swift
-- [X] T013 [P] Define TokenStorage protocol in GitReviewIt/Infrastructure/Storage/TokenStorage.swift
-- [X] T014 [P] Define OAuthManager protocol in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift
-- [X] T015 [P] Define GitHubAPI protocol in GitReviewIt/Infrastructure/Networking/GitHubAPI.swift
+- [X] T012 [P] Define HTTPClient protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/HTTPClient.swift
+- [X] T013 [P] [REWORK] Rename to CredentialStorage protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Storage/CredentialStorage.swift (stores token + baseURL)
+- [X] T014 ~~DELETED: OAuthManager not needed for PAT authentication~~
+- [X] T015 [P] Define GitHubAPI protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift
 
 ### Domain Models
 
-- [X] T016 [P] Create GitHubToken struct in GitReviewIt/Features/Authentication/Models/GitHubToken.swift
-- [X] T017 [P] Create AuthenticatedUser struct in GitReviewIt/Features/Authentication/Models/AuthenticatedUser.swift
-- [X] T018 [P] Create PullRequest struct in GitReviewIt/Features/PullRequests/Models/PullRequest.swift
+- [X] T016 [P] [REWORK] Rename to GitHubCredentials struct (token: String, baseURL: String) in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/Models/GitHubCredentials.swift
+- [X] T017 [P] Create AuthenticatedUser struct in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/Models/AuthenticatedUser.swift
+- [X] T018 [P] Create PullRequest struct in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Models/PullRequest.swift
 
 ### Production Implementations
 
-- [X] T019 [P] Implement URLSessionHTTPClient conforming to HTTPClient in GitReviewIt/Infrastructure/Networking/HTTPClient.swift
-- [X] T020 [P] Implement KeychainTokenStorage conforming to TokenStorage in GitReviewIt/Infrastructure/Storage/TokenStorage.swift
-- [X] T021 [P] Implement ASWebAuthenticationSessionOAuthManager conforming to OAuthManager in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift
-- [X] T022 Implement GitHubAPIClient conforming to GitHubAPI in GitReviewIt/Infrastructure/Networking/GitHubAPI.swift
-- [ ] T023 Create GitHubOAuthConfig enum with PKCE support (clientId, code verifier/challenge generation) in GitReviewIt/Infrastructure/OAuth/GitHubOAuthConfig.swift
+- [X] T019 [P] Implement URLSessionHTTPClient conforming to HTTPClient in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/HTTPClient.swift
+- [X] T020 [P] [REWORK] Rename to KeychainCredentialStorage conforming to CredentialStorage in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Storage/CredentialStorage.swift (stores token + baseURL as JSON)
+- [X] T021 ~~DELETED: ASWebAuthenticationSessionOAuthManager not needed for PAT authentication~~
+- [X] T022 [REWORK] Implement GitHubAPIClient conforming to GitHubAPI with baseURL parameter support in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift
+- [X] T023 ~~DELETED: GitHubOAuthConfig not needed for PAT authentication~~
 
 ### Test Doubles
 
-- [ ] T024 [P] Create MockHTTPClient conforming to HTTPClient in GitReviewItTests/TestDoubles/MockHTTPClient.swift
-- [ ] T025 [P] Create MockTokenStorage conforming to TokenStorage in GitReviewItTests/TestDoubles/MockTokenStorage.swift
-- [ ] T026 [P] Create MockOAuthManager conforming to OAuthManager in GitReviewItTests/TestDoubles/MockOAuthManager.swift
-- [ ] T027 [P] Create MockGitHubAPI conforming to GitHubAPI in GitReviewItTests/TestDoubles/MockGitHubAPI.swift
+- [ ] T024 [P] Create MockHTTPClient conforming to HTTPClient in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockHTTPClient.swift
+- [ ] T025 [P] Create MockCredentialStorage conforming to CredentialStorage in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockCredentialStorage.swift
+- [ ] T026 ~~DELETED: MockOAuthManager not needed for PAT authentication~~
+- [ ] T027 [P] Create MockGitHubAPI conforming to GitHubAPI in app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift
 
 ### Test Fixtures
 
-- [ ] T028 [P] Create user-response.json fixture in GitReviewItTests/Fixtures/user-response.json
-- [ ] T029 [P] Create prs-response.json fixture in GitReviewItTests/Fixtures/prs-response.json
-- [ ] T030 [P] Create error-responses.json fixture in GitReviewItTests/Fixtures/error-responses.json
+- [ ] T028 [P] Create user-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/user-response.json
+- [ ] T029 [P] Create prs-response.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/prs-response.json
+- [ ] T030 [P] Create error-responses.json fixture in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/error-responses.json
 
 ### Shared UI Components
 
-- [ ] T031 [P] Create LoadingView in GitReviewIt/Shared/Views/LoadingView.swift
-- [ ] T032 [P] Create ErrorView in GitReviewIt/Shared/Views/ErrorView.swift
+- [ ] T031 [P] Create LoadingView in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Views/LoadingView.swift
+- [ ] T032 [P] Create ErrorView in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Views/ErrorView.swift
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -86,27 +86,25 @@
 
 ## Phase 3: User Story 1 - First-Time GitHub Authentication (Priority: P1) 🎯 MVP
 
-**Goal**: User can authenticate with GitHub account using OAuth and have token stored securely
+**Goal**: User can authenticate with GitHub (including GitHub Enterprise) by entering Personal Access Token and optional API base URL
 
-**Independent Test**: Launch fresh install, see login screen, complete OAuth flow, verify token stored, see navigation to PR list screen
+**Independent Test**: Launch fresh install, see login screen, enter PAT (and optional baseURL for GHE), verify credentials stored, see navigation to PR list screen
 
 ### Implementation for User Story 1
 
-- [ ] T033 [US1] Create AuthenticationContainer (@Observable) in GitReviewIt/Features/Authentication/State/AuthenticationContainer.swift
-- [ ] T034 [US1] Implement startOAuth() method in AuthenticationContainer
-- [ ] T035 [US1] Implement completeOAuth(code:) method in AuthenticationContainer with token exchange and storage
-- [ ] T036 [US1] Implement logout() method in AuthenticationContainer
-- [ ] T037 [US1] Create LoginView with Sign in with GitHub button in GitReviewIt/Features/Authentication/Views/LoginView.swift
-- [ ] T038 [US1] Connect LoginView to AuthenticationContainer using @State
-- [ ] T039 [US1] Implement .onOpenURL modifier in ContentView to capture OAuth callback
-- [ ] T040 [US1] Add state validation in completeOAuth to prevent CSRF attacks
-- [ ] T041 [US1] Update ContentView to conditionally show LoginView vs PullRequestListView based on auth state
-- [ ] T042 ⚠️ HUMAN: Create AuthenticationFlowTests in GitReviewItTests/IntegrationTests/AuthenticationFlowTests.swift (AFTER: setup test target + scheme, see HUMAN_HELP_NEEDED.md #2-3)
-- [ ] T043 [US1] Add test for successful OAuth flow with mock dependencies
-- [ ] T044 [US1] Add test for OAuth cancellation handling
-- [ ] T045 [US1] Add test for token storage verification after successful auth
+- [ ] T033 [US1] Create AuthenticationContainer (@Observable) in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/State/AuthenticationContainer.swift
+- [ ] T034 [US1] Implement validateAndSaveCredentials(token:baseURL:) method in AuthenticationContainer (validates via GET /user, stores if valid)
+- [ ] T035 [US1] Implement logout() method in AuthenticationContainer
+- [ ] T036 [US1] Create LoginView with PAT TextField, optional baseURL TextField (default: https://api.github.com), "Need a token?" help link (opens https://github.com/settings/tokens), and Sign In button in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/Views/LoginView.swift
+- [ ] T037 [US1] Connect LoginView to AuthenticationContainer using @State
+- [ ] T038 [US1] Add input validation in LoginView (non-empty token, valid URL format for baseURL)
+- [ ] T039 [US1] Update ContentView to conditionally show LoginView vs PullRequestListView based on auth state
+- [ ] T040 [US1] Create AuthenticationFlowTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/AuthenticationFlowTests.swift
+- [ ] T041 [US1] Add test for successful PAT validation and credential storage
+- [ ] T042 [US1] Add test for invalid PAT handling (401 response)
+- [ ] T043 [US1] Add test for GitHub Enterprise custom baseURL authentication
 
-**Checkpoint**: User Story 1 complete - users can authenticate and token is stored
+**Checkpoint**: User Story 1 complete - users can authenticate with PAT (including GitHub Enterprise) and credentials are stored
 
 ---
 
@@ -114,16 +112,16 @@
 
 **Goal**: Authenticated user sees list of all pull requests where review is requested
 
-**Independent Test**: Authenticate user, verify app fetches and displays PRs, tap PR to open in Safari
+**Independent Test**: Authenticate user, verify app fetches and displays PRs (respecting baseURL for GHE), tap PR to open in Safari
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] Create PullRequestListContainer (@Observable) in GitReviewIt/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T047 [US2] Implement loadPullRequests() method fetching from GitHubAPI in PullRequestListContainer
+- [ ] T046 [US2] Create PullRequestListContainer (@Observable) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [ ] T047 [US2] Implement loadPullRequests() method fetching from GitHubAPI (using stored token + baseURL) in PullRequestListContainer
 - [ ] T048 [US2] Implement retry() method in PullRequestListContainer
 - [ ] T049 [US2] Add loading/error/empty state management in PullRequestListContainer
-- [ ] T050 [US2] Create PullRequestRow view displaying repo, title, author, timestamp in GitReviewIt/Features/PullRequests/Views/PullRequestRow.swift
-- [ ] T051 [US2] Create PullRequestListView with List of PullRequestRow in GitReviewIt/Features/PullRequests/Views/PullRequestListView.swift
+- [ ] T050 [US2] Create PullRequestRow view displaying repo, title, author, timestamp in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift
+- [ ] T051 [US2] Create PullRequestListView with List of PullRequestRow in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestListView.swift
 - [ ] T052 [US2] Connect PullRequestListView to PullRequestListContainer using @State
 - [ ] T053 [US2] Implement .task modifier in PullRequestListView to call loadPullRequests() on appear
 - [ ] T054 [US2] Add loading state display in PullRequestListView
@@ -131,7 +129,7 @@
 - [ ] T056 [US2] Add error state with retry button in PullRequestListView
 - [ ] T057 [US2] Implement tap handler to open PR URL in Safari using Link or openURL
 - [ ] T058 [US2] Format relative timestamps using RelativeDateTimeFormatter in PullRequestRow
-- [ ] T059 [US2] Create PullRequestListTests in GitReviewItTests/IntegrationTests/PullRequestListTests.swift
+- [ ] T059 [US2] Create PullRequestListTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PullRequestListTests.swift
 - [ ] T060 [US2] Add test for successful PR list fetch and display
 - [ ] T061 [US2] Add test for empty state when no PRs
 - [ ] T062 [US2] Add test for loading state display
@@ -149,16 +147,16 @@
 
 ### Implementation for User Story 3
 
-- [ ] T064 [US3] Add checkExistingToken() method in AuthenticationContainer
-- [ ] T065 [US3] Implement automatic token load on app launch in AuthenticationContainer
-- [ ] T066 [US3] Add token validation logic detecting 401 responses in GitHubAPIClient
-- [ ] T067 [US3] Implement automatic logout and return to login on invalid token (401) in AuthenticationContainer
-- [ ] T068 [US3] Update ContentView to call checkExistingToken() in .task modifier on launch
-- [ ] T069 [US3] Add navigation state management to skip login when valid token exists in ContentView
-- [ ] T070 [US3] Create TokenPersistenceTests in GitReviewItTests/IntegrationTests/TokenPersistenceTests.swift
-- [ ] T071 [US3] Add test for app launch with valid stored token
-- [ ] T072 [US3] Add test for app launch with expired token (401 response)
-- [ ] T073 [US3] Add test for app launch with no stored token
+- [ ] T064 [US3] Add checkExistingCredentials() method in AuthenticationContainer
+- [ ] T065 [US3] Implement automatic credential load on app launch in AuthenticationContainer
+- [ ] T066 [US3] Add credential validation logic detecting 401 responses in GitHubAPIClient
+- [ ] T067 [US3] Implement automatic logout and return to login on invalid credentials (401) in AuthenticationContainer
+- [ ] T068 [US3] Update ContentView to call checkExistingCredentials() in .task modifier on launch
+- [ ] T069 [US3] Add navigation state management to skip login when valid credentials exist in ContentView
+- [ ] T070 [US3] Create CredentialPersistenceTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/CredentialPersistenceTests.swift
+- [ ] T071 [US3] Add test for app launch with valid stored credentials
+- [ ] T072 [US3] Add test for app launch with expired PAT (401 response)
+- [ ] T073 [US3] Add test for app launch with no stored credentials
 
 **Checkpoint**: User Story 3 complete - users stay logged in across sessions
 
@@ -172,14 +170,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T074 [US4] Enhance APIError with user-friendly LocalizedError descriptions in GitReviewIt/Shared/Models/APIError.swift
+- [ ] T074 [US4] Enhance APIError with user-friendly LocalizedError descriptions in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/APIError.swift
 - [ ] T075 [US4] Add rate limit detection and reset time display for 403 responses in GitHubAPIClient
 - [ ] T076 [US4] Add network unreachable error handling in URLSessionHTTPClient
-- [ ] T077 [US4] Enhance ErrorView with specific error messages based on APIError type in GitReviewIt/Shared/Views/ErrorView.swift
+- [ ] T077 [US4] Enhance ErrorView with specific error messages based on APIError type in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Views/ErrorView.swift
 - [ ] T078 [US4] Add retry button functionality in ErrorView
-- [ ] T079 [US4] Add error display in AuthenticationContainer for OAuth failures
+- [ ] T079 [US4] Add error display in AuthenticationContainer for PAT validation failures
 - [ ] T080 [US4] Add connection status checking before network operations
-- [ ] T081 [US4] Create ErrorHandlingTests in GitReviewItTests/IntegrationTests/ErrorHandlingTests.swift
+- [ ] T081 [US4] Create ErrorHandlingTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/ErrorHandlingTests.swift
 - [ ] T082 [US4] Add test for network failure error display
 - [ ] T083 [US4] Add test for rate limit error with reset time
 - [ ] T084 [US4] Add test for invalid response error handling
@@ -193,17 +191,17 @@
 
 **Goal**: Users can log out to switch accounts or secure their session
 
-**Independent Test**: Authenticate, log out, verify token cleared and login screen returns
+**Independent Test**: Authenticate, log out, verify credentials cleared and login screen returns
 
 ### Implementation for User Story 5
 
 - [ ] T086 [US5] Add logout button or menu item in PullRequestListView
 - [ ] T087 [US5] Connect logout action to AuthenticationContainer.logout() method
-- [ ] T088 [US5] Verify token deletion from Keychain in logout() method
+- [ ] T088 [US5] Verify credential deletion from Keychain in logout() method
 - [ ] T089 [US5] Add navigation back to LoginView after logout in ContentView
 - [ ] T090 [US5] Clear all cached user data on logout in AuthenticationContainer
-- [ ] T091 [US5] Create LogoutTests in GitReviewItTests/IntegrationTests/LogoutTests.swift
-- [ ] T092 [US5] Add test for successful logout and token removal
+- [ ] T091 [US5] Create LogoutTests in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/LogoutTests.swift
+- [ ] T092 [US5] Add test for successful logout and credential removal
 - [ ] T093 [US5] Add test for navigation to login screen after logout
 - [ ] T094 [US5] Add test for app relaunch after logout shows login screen
 
@@ -299,22 +297,20 @@
 
 ```bash
 # Launch all error types together:
-Task T007: "Create APIError enum in GitReviewIt/Shared/Models/APIError.swift"
-Task T008: "Create LoadingState enum in GitReviewIt/Shared/Models/LoadingState.swift"
-Task T009: "Create TokenStorageError enum in GitReviewIt/Infrastructure/Storage/TokenStorage.swift"
-Task T010: "Create OAuthError enum in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift"
-Task T011: "Create HTTPError enum in GitReviewIt/Infrastructure/Networking/HTTPClient.swift"
+Task T007: "Create APIError enum in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/APIError.swift"
+Task T008: "Create LoadingState enum in app/GitReviewItApp/Sources/GitReviewItApp/Shared/Models/LoadingState.swift"
+Task T009: "Create CredentialStorageError enum in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Storage/CredentialStorage.swift"
+Task T011: "Create HTTPError enum in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/HTTPClient.swift"
 
 # Then launch all protocol definitions together:
-Task T012: "Define HTTPClient protocol in GitReviewIt/Infrastructure/Networking/HTTPClient.swift"
-Task T013: "Define TokenStorage protocol in GitReviewIt/Infrastructure/Storage/TokenStorage.swift"
-Task T014: "Define OAuthManager protocol in GitReviewIt/Infrastructure/OAuth/OAuthManager.swift"
-Task T015: "Define GitHubAPI protocol in GitReviewIt/Infrastructure/Networking/GitHubAPI.swift"
+Task T012: "Define HTTPClient protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/HTTPClient.swift"
+Task T013: "Define CredentialStorage protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Storage/CredentialStorage.swift"
+Task T015: "Define GitHubAPI protocol in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift"
 
 # Then launch all domain models together:
-Task T016: "Create GitHubToken struct in GitReviewIt/Features/Authentication/Models/GitHubToken.swift"
-Task T017: "Create AuthenticatedUser struct in GitReviewIt/Features/Authentication/Models/AuthenticatedUser.swift"
-Task T018: "Create PullRequest struct in GitReviewIt/Features/PullRequests/Models/PullRequest.swift"
+Task T016: "Create GitHubCredentials struct in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/Models/GitHubCredentials.swift"
+Task T017: "Create AuthenticatedUser struct in app/GitReviewItApp/Sources/GitReviewItApp/Features/Authentication/Models/AuthenticatedUser.swift"
+Task T018: "Create PullRequest struct in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Models/PullRequest.swift"
 ```
 
 ---
@@ -352,19 +348,20 @@ Stories integrate at ContentView level for navigation.
 
 ## Summary
 
-- **Total Tasks**: 105 tasks across 8 phases
-- **MVP Tasks (P1)**: 73 tasks (Phases 1-5)
+- **Total Tasks**: 100 tasks across 8 phases (5 OAuth tasks deleted)
+- **MVP Tasks (P1)**: 68 tasks (Phases 1-5)
 - **Enhancement Tasks (P2)**: 21 tasks (Phases 6-7)
 - **Polish Tasks**: 11 tasks (Phase 8)
 - **Tests Included**: Integration tests for each user story (not unit tests per spec)
-- **Parallel Tasks**: 45 tasks marked with [P] for concurrent execution
+- **Parallel Tasks**: ~40 tasks marked with [P] for concurrent execution
 - **User Stories**: 5 independent stories, 3 in MVP (P1)
+- **Authentication**: Personal Access Token (PAT) with GitHub Enterprise support (custom baseURL)
 
 ### Task Count by User Story
 
-- **Setup (Phase 1)**: 6 tasks
-- **Foundational (Phase 2)**: 26 tasks (BLOCKING - must complete first)
-- **User Story 1 (P1)**: 13 tasks - Authentication
+- **Setup (Phase 1)**: 5 tasks (URL scheme task deleted)
+- **Foundational (Phase 2)**: 22 tasks (OAuth tasks deleted, BLOCKING - must complete first)
+- **User Story 1 (P1)**: 11 tasks - PAT Authentication (simplified from OAuth)
 - **User Story 2 (P1)**: 18 tasks - PR List Display
 - **User Story 3 (P1)**: 10 tasks - Session Persistence
 - **User Story 4 (P2)**: 12 tasks - Error Handling
@@ -373,17 +370,17 @@ Stories integrate at ContentView level for navigation.
 
 ### Independent Test Criteria
 
-- **US1**: Can authenticate with GitHub, token stored, navigates to PR list
-- **US2**: Can fetch and display PRs, tap to open in Safari, see loading/empty/error states
+- **US1**: Can authenticate with GitHub (including GitHub Enterprise) using PAT, credentials stored, navigates to PR list
+- **US2**: Can fetch and display PRs (respecting baseURL for GHE), tap to open in Safari, see loading/empty/error states
 - **US3**: Can relaunch app and see PR list without re-auth
 - **US4**: Can see appropriate error messages and retry failed operations
-- **US5**: Can log out, verify token cleared, see login screen
+- **US5**: Can log out, verify credentials cleared, see login screen
 
 ### Suggested MVP Scope
 
 **Phase 1 + Phase 2 + Phase 3 + Phase 4 + Phase 5** (Tasks T001-T073)
 
-This delivers the core value: authenticate with GitHub and view PRs awaiting review, with session persistence. Error handling (US4) and logout (US5) can follow in subsequent releases.
+This delivers the core value: authenticate with GitHub (including GitHub Enterprise) using PAT and view PRs awaiting review, with session persistence. Error handling (US4) and logout (US5) can follow in subsequent releases.
 
 ---
 
@@ -391,19 +388,22 @@ This delivers the core value: authenticate with GitHub and view PRs awaiting rev
 
 ✅ All tasks follow required checklist format:
 - `- [ ]` checkbox prefix
-- `[TaskID]` sequential numbering (T001-T105)
-- `[P]` marker for parallelizable tasks (45 tasks)
+- `[TaskID]` sequential numbering (T001-T100, OAuth tasks deleted/marked)
+- `[P]` marker for parallelizable tasks (~40 tasks)
 - `[Story]` label for user story tasks (US1-US5)
-- Description with exact file path
+- `[REWORK]` marker for completed tasks needing modification
+- Description with exact file path in app/GitReviewItApp/
 
 ✅ All user stories independently testable:
 - Each story has clear goal and test criteria
 - Foundational phase creates shared infrastructure
 - Stories can be implemented and validated in priority order
 - Integration points clearly identified
+- GitHub Enterprise supported via baseURL parameter
 
 ✅ Tasks organized for incremental delivery:
-- MVP = Phases 1-5 (73 tasks)
+- MVP = Phases 1-5 (68 tasks)
 - Each phase has completion checkpoint
 - Parallel execution opportunities identified
 - Dependencies clearly documented
+- PAT authentication simplifies implementation (no OAuth complexity)

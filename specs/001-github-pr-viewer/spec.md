@@ -13,14 +13,16 @@ As a developer who wants to review PRs, I need to authenticate with my GitHub ac
 
 **Why this priority**: Without authentication, no other features can work. This is the foundational capability that enables all value.
 
-**Independent Test**: Can be fully tested by launching a fresh install, seeing the login screen, completing OAuth flow, and verifying a token is stored. Delivers value by establishing a secure connection to GitHub.
+**Independent Test**: Can be fully tested by launching a fresh install, seeing the login prompt, entering a Personal Access Token (and optional GitHub Enterprise URL), and verifying credentials are stored. Delivers value by establishing a secure connection to GitHub or GitHub Enterprise.
 
 **Acceptance Scenarios**:
 
-1. **Given** the app is launched for the first time with no stored token, **When** the user views the first screen, **Then** a login screen is displayed with a "Sign in with GitHub" option
-2. **Given** the user taps "Sign in with GitHub", **When** the OAuth flow completes successfully, **Then** an access token is obtained and stored securely
-3. **Given** authentication succeeds, **When** the token is stored, **Then** the app navigates to the PR review list screen
-4. **Given** authentication fails or is cancelled, **When** the OAuth flow returns, **Then** the user remains on the login screen with an appropriate message
+1. **Given** the app is launched for the first time with no stored credentials, **When** the user views the first screen, **Then** a login screen is displayed with fields for Personal Access Token and optional API base URL
+2. **Given** the user doesn't have a Personal Access Token, **When** viewing the login screen, **Then** a "Need a token?" help link is visible that opens GitHub's token creation page (https://github.com/settings/tokens) in the browser
+3. **Given** the user enters a valid Personal Access Token, **When** credentials are validated successfully, **Then** the credentials are stored securely in Keychain
+4. **Given** authentication succeeds, **When** the credentials are stored, **Then** the app navigates to the PR review list screen
+5. **Given** authentication fails (invalid token or unreachable server), **When** validation completes, **Then** the user remains on the login screen with an appropriate error message
+6. **Given** the user enters a custom GitHub Enterprise API base URL, **When** credentials are validated, **Then** the app connects to the specified GitHub Enterprise instance
 
 ---
 
@@ -52,9 +54,9 @@ As a returning user, I need the app to remember my authentication so I can view 
 
 **Acceptance Scenarios**:
 
-1. **Given** a token is stored from a previous session, **When** the app launches, **Then** the login screen is skipped and the PR list screen is shown
-2. **Given** the app uses a stored token, **When** the token is valid, **Then** PRs load successfully
-3. **Given** a stored token is used, **When** the token is invalid or expired (401 response), **Then** the app clears the token and returns to the login screen
+1. **Given** credentials are stored from a previous session, **When** the app launches, **Then** the login screen is skipped and the PR list screen is shown
+2. **Given** the app uses stored credentials, **When** the token is valid, **Then** PRs load successfully
+3. **Given** stored credentials are used, **When** the token is invalid or expired (401 response), **Then** the app clears the credentials and returns to the login screen
 
 ---
 
@@ -94,10 +96,10 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ### Edge Cases
 
-- What happens when the OAuth redirect URL is intercepted but the state parameter doesn't match?
 - How does the system handle a token that becomes invalid mid-session (e.g., user revokes access on GitHub)?
-- What happens when the GitHub API is completely unreachable (DNS failure, server down)?
-- How does the app behave if the user denies OAuth permissions?
+- What happens when the GitHub API or GitHub Enterprise server is completely unreachable (DNS failure, server down)?
+- How does the app behave when the user provides an invalid GitHub Enterprise base URL?
+- What happens when switching between GitHub.com and GitHub Enterprise instances?
 - What happens when the device has no internet connection at launch?
 - How does the system handle partial or corrupted data in the keychain?
 - What happens when GitHub returns PRs with missing or null fields?
@@ -107,11 +109,11 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ### Functional Requirements
 
-- **FR-001**: System MUST provide a native OAuth authentication flow using ASWebAuthenticationSession to obtain a GitHub access token
-- **FR-002**: System MUST store the access token securely in the device Keychain for persistence across app launches
-- **FR-003**: System MUST request only the minimal GitHub OAuth scopes necessary to read public and private PR data (scope: `repo` for private repo access, or `public_repo` if only public repos are needed)
-- **FR-004**: System MUST validate the OAuth state parameter to prevent CSRF attacks during the authentication flow
-- **FR-005**: System MUST fetch the authenticated user's identity using the GitHub API (`GET /user`) after successful authentication
+- **FR-001**: System MUST provide a credential entry interface for GitHub Personal Access Token and optional GitHub Enterprise API base URL
+- **FR-002**: System MUST store credentials (token and base URL) securely in the device Keychain for persistence across app launches
+- **FR-003**: System MUST support both GitHub.com (default: `https://api.github.com`) and GitHub Enterprise (custom base URL) with the same interface
+- **FR-004**: System MUST validate credentials by attempting to fetch the user's identity using the GitHub API (`GET {baseURL}/user`) after credential entry
+- **FR-005**: System MUST display clear error messages when credentials are invalid or the server is unreachable
 - **FR-006**: System MUST query pull requests where the authenticated user's review is requested using GitHub's Search API with the query: `type:pr state:open review-requested:<username>`
 - **FR-007**: System MUST display a loading state while authenticating or fetching PR data
 - **FR-008**: System MUST display an empty state with appropriate messaging when no PRs require review
@@ -127,9 +129,9 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ### Key Entities
 
-- **GitHubToken**: Represents an OAuth access token with its string value, creation timestamp, and OAuth scopes. Stored securely in Keychain.
+- **GitHubCredentials**: Represents stored authentication credentials with Personal Access Token, GitHub instance API base URL (defaults to `https://api.github.com` for GitHub.com), and creation timestamp. Stored securely in Keychain. Supports both GitHub.com and GitHub Enterprise.
 - **AuthenticatedUser**: Represents the currently logged-in GitHub user with username (login), display name, and optional avatar URL. Used to personalize the experience and construct API queries.
-- **PullRequest**: Represents a GitHub PR awaiting review. Contains repository owner, repository name, PR number, title, author username, author avatar URL, last updated timestamp, and web URL for opening in Safari. Sourced from GitHub Search API results.
+- **PullRequest**: Represents a GitHub PR awaiting review. Contains repository owner, repository name, PR number, title, author username, author avatar URL, last updated timestamp, and web URL for opening in browser. Sourced from GitHub Search API results.
 - **PullRequestList**: Represents the collection of PRs displayed to the user, including fetch state (loading, loaded, error) and the list of PRs. Manages the entire screen state.
 - **APIError**: Represents various error conditions: network unreachable, authentication failed, rate limited (with reset time), invalid response, and generic errors. Used to display appropriate error messages to users.
 
@@ -137,9 +139,9 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can authenticate with GitHub and see their first PR list within 30 seconds of tapping "Sign in with GitHub"
+- **SC-001**: Users can authenticate with GitHub and see their first PR list within 30 seconds of entering their Personal Access Token
 - **SC-002**: Users returning to the app see their PR list within 3 seconds of launch without re-authenticating
-- **SC-003**: 95% of users successfully complete the OAuth flow on their first attempt without errors
+- **SC-003**: Users can successfully authenticate with both GitHub.com and GitHub Enterprise using the same credential entry interface
 - **SC-004**: PR list displays all required information (repo name, title, author, timestamp) clearly and is scrollable with no performance degradation for lists up to 100 items
 - **SC-005**: Users can successfully open any PR in Safari with a single tap, reaching the GitHub page within 2 seconds
 - **SC-006**: When network errors occur, 90% of users understand what went wrong from the error message and know they can retry
@@ -149,34 +151,46 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ## API Integration Details
 
-### GitHub OAuth Flow
+### GitHub Personal Access Token Authentication
 
-**Endpoints Used**:
-- **Authorization URL**: `https://github.com/login/oauth/authorize`
-  - **Parameters**: `client_id`, `redirect_uri`, `scope`, `state` (CSRF token)
-  - **Scopes Required**: `repo` (for access to private repository PRs) or `public_repo` (if only public PRs are needed)
-  - **Response**: Authorization code via redirect to custom URL scheme (e.g., `gitreviewit://oauth-callback?code=...&state=...`)
+**Credential Format**:
+- **Personal Access Token**: GitHub or GitHub Enterprise PAT with `repo` scope (or `public_repo` for public-only)
+  - Format: `ghp_...` (GitHub.com) or `gho_...` (GitHub Enterprise)
+  - Created at: `https://github.com/settings/tokens` or `https://your-enterprise.com/settings/tokens`
+- **API Base URL** (optional): 
+  - GitHub.com: `https://api.github.com` (default)
+  - GitHub Enterprise: `https://github.company.com/api/v3` or custom URL
 
-- **Token Exchange**: `POST https://github.com/login/oauth/access_token`
-  - **Request Body**: `client_id`, `client_secret`, `code`, `redirect_uri`
-  - **Response**: `{ "access_token": "...", "token_type": "bearer", "scope": "..." }`
-  - **Expected Errors**: `400` (invalid code), `401` (invalid credentials)
+**Credential Validation Flow**:
+1. User provides Personal Access Token and optional base URL (defaults to `https://api.github.com`)
+2. App validates base URL is HTTPS
+3. App attempts `GET {baseURL}/user` with token in Authorization header
+4. If 200 OK → credentials valid, store in Keychain
+5. If 401 → invalid token, show error
+6. If network error → unreachable server, show error
 
 **Security Notes**:
-- Must generate and validate a unique state parameter for each OAuth flow to prevent CSRF
-- Access token must be stored in Keychain with appropriate accessibility settings
-- Using PKCE (Proof Key for Code Exchange) OAuth flow - no client secret needed, designed for native apps
+- Personal Access Token must be stored in Keychain with appropriate accessibility settings
+- Base URL must be validated to use HTTPS (reject HTTP)
+- No OAuth client ID or client secret required
+- Works identically for GitHub.com and GitHub Enterprise
+
+**GitHub Enterprise Support**:
+- User can specify custom API base URL (e.g., `https://git.company.com/api/v3`)
+- Same API endpoints work for both GitHub.com and Enterprise
+- App supports any GitHub instance by storing base URL with credentials
+- No separate OAuth app registration required per instance
 
 ### GitHub API Endpoints
 
 **Get Current User**:
-- **Endpoint**: `GET https://api.github.com/user`
+- **Endpoint**: `GET {baseURL}/user`
 - **Headers**: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`
 - **Response**: `{ "login": "username", "name": "Display Name", "avatar_url": "...", ... }`
 - **Expected Errors**: `401` (invalid or expired token), `403` (rate limited)
 
 **Search Pull Requests**:
-- **Endpoint**: `GET https://api.github.com/search/issues`
+- **Endpoint**: `GET {baseURL}/search/issues`
 - **Query Parameters**: `q=type:pr state:open review-requested:<username>`, `sort=updated`, `order=desc`, `per_page=50`
 - **Headers**: `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`
 - **Response**:
@@ -219,18 +233,21 @@ As a user, I need to be able to log out of my GitHub account so I can switch acc
 
 ### Proposed Module Structure
 
+**Swift Package**: All code lives in `app/GitReviewItApp/Sources/GitReviewItApp/`
+
 ```
-GitReviewIt/
+app/GitReviewItApp/Sources/GitReviewItApp/
 ├── App/
 │   ├── GitReviewItApp.swift          // App entry point, environment setup
 │   └── AppState.swift                // Top-level observable state (auth status, routing)
 ├── Features/
 │   ├── Authentication/
 │   │   ├── Views/
-│   │   │   └── LoginView.swift       // Login screen UI
+│   │   │   └── LoginView.swift       // Login screen UI with PAT entry
 │   │   ├── AuthenticationController.swift  // @Observable state container for auth
 │   │   └── Models/
-│   │       └── GitHubToken.swift     // Token model
+│   │       ├── GitHubCredentials.swift     // Credentials model (token + baseURL)
+│   │       └── AuthenticatedUser.swift     // User model
 │   └── PullRequestList/
 │       ├── Views/
 │       │   ├── PullRequestListView.swift    // Main PR list screen
@@ -238,32 +255,41 @@ GitReviewIt/
 │       │   └── EmptyStateView.swift         // Empty state when no PRs
 │       ├── PullRequestListController.swift  // @Observable state container
 │       └── Models/
-│           ├── PullRequest.swift            // PR model
-│           └── AuthenticatedUser.swift      // User model
-├── Services/
-│   ├── Authentication/
-│   │   ├── GitHubAuthProvider.swift         // Protocol + implementation
-│   │   └── OAuthCoordinator.swift           // Handles ASWebAuthenticationSession
+│           └── PullRequest.swift            // PR model
+├── Infrastructure/
 │   ├── API/
 │   │   ├── GitHubAPIClient.swift            // Protocol + URLSession implementation
 │   │   └── Models/
 │   │       ├── GitHubAPIError.swift         // API error types
 │   │       └── SearchResponse.swift         // API response models
 │   └── Storage/
-│       ├── TokenStore.swift                 // Protocol + Keychain implementation
+│       ├── CredentialStore.swift            // Protocol + Keychain implementation
 │       └── KeychainHelper.swift             // Low-level Keychain wrapper
-└── Utilities/
+└── Shared/
     ├── Extensions/
     │   └── Date+RelativeFormat.swift        // "2 hours ago" formatting
-    └── Constants.swift                      // OAuth config, API base URLs
+    └── Models/
+        └── LoadingState.swift               // Generic loading state enum
 ```
+
+**Tests**: All tests live in `app/GitReviewItApp/Tests/GitReviewItAppTests/`
 
 ### Protocol Boundaries for Testing
 
-**GitHubAuthProviding**:
+**GitHubAPIProviding**:
 ```swift
-protocol GitHubAuthProviding {
-    func authenticate() async throws -> GitHubToken
+protocol GitHubAPIProviding {
+    func fetchUser(token: String, baseURL: String) async throws -> AuthenticatedUser
+    func searchPullRequests(username: String, token: String, baseURL: String) async throws -> [PullRequest]
+}
+```
+
+**CredentialStoring**:
+```swift
+protocol CredentialStoring {
+    func saveCredentials(token: String, baseURL: String) async throws
+    func loadCredentials() async throws -> (token: String, baseURL: String)?
+    func deleteCredentials() async throws
 }
 ```
 
@@ -322,17 +348,17 @@ final class PullRequestListController {
 - Each test validates a user story end-to-end
 
 **Example Tests**:
-1. **First Launch Flow**: AppState initializes → no token → shows login → auth succeeds → token stored → navigates to PR list → PRs loaded
-2. **Returning User Flow**: AppState initializes → token present → skips login → PRs loaded → displays in list
-3. **Invalid Token Flow**: PR list loads → API returns 401 → token cleared → navigates to login
+1. **First Launch Flow**: AppState initializes → no credentials → shows login → user enters PAT + baseURL → credentials validated → stored → navigates to PR list → PRs loaded
+2. **Returning User Flow**: AppState initializes → credentials present → skips login → PRs loaded → displays in list
+3. **Invalid Token Flow**: PR list loads → API returns 401 → credentials cleared → navigates to login
 4. **Rate Limit Flow**: PR list loads → API returns 403 with rate limit headers → error displayed with reset time
 5. **Empty PR List**: PR list loads → API returns zero items → empty state displayed
-6. **Logout Flow**: User on PR list → logout called → token cleared → navigates to login
+6. **Logout Flow**: User on PR list → logout called → credentials cleared → navigates to login
+7. **GitHub Enterprise Flow**: User enters Enterprise base URL → credentials validated against Enterprise API → PRs fetched from Enterprise
 
 **What to Mock**:
 - URLSession (using URLProtocol or protocol-based transport)
 - Keychain operations (using in-memory test implementation)
-- ASWebAuthenticationSession (using protocol wrapper)
 
 **What NOT to Mock**:
 - Controllers (test real implementations)
@@ -342,18 +368,17 @@ final class PullRequestListController {
 ### Implementation Phases
 
 **Phase 1: Authentication Foundation** (1-2 PRs)
-- Implement `TokenStore` with Keychain backing
-- Implement `OAuthCoordinator` with ASWebAuthenticationSession
-- Create `AuthenticationController` with login/logout actions
-- Create `LoginView` with basic UI
-- Add tests for token storage and auth flow
+- Implement `CredentialStore` with Keychain backing
+- Create `AuthenticationController` with authenticate/logout actions
+- Create `LoginView` with PAT entry and optional base URL fields
+- Add tests for credential storage and validation flow
 
 **Phase 2: API Integration** (1-2 PRs)
-- Implement `GitHubAPIClient` with URLSession
-- Add `getCurrentUser` endpoint support
-- Add `searchPullRequests` endpoint support
+- Implement `GitHubAPIClient` with URLSession and baseURL parameter support
+- Add `fetchUser` endpoint support (works with any baseURL)
+- Add `searchPullRequests` endpoint support (works with any baseURL)
 - Add error handling and rate limit detection
-- Add tests for API client with fixtures
+- Add tests for API client with fixtures for both GitHub.com and Enterprise
 
 **Phase 3: PR List Feature** (1-2 PRs)
 - Implement `PullRequestListController`
@@ -378,10 +403,17 @@ final class PullRequestListController {
 
 ## Assumptions
 
-- **GitHub OAuth Client**: Assumes a GitHub OAuth App is registered with appropriate redirect URI (`gitreviewit://oauth-callback` or custom scheme)
-- **OAuth Flow**: Uses PKCE (Proof Key for Code Exchange) - no client secret required, more secure for native apps
+- **Authentication Method**: Uses GitHub Personal Access Tokens (PAT) - no OAuth client registration required, works seamlessly with GitHub Enterprise
+- **Token Creation**: Assumes users can create PATs via GitHub settings (`github.com/settings/tokens` or Enterprise equivalent)
 - **Scope Decision**: Assumes `repo` scope is acceptable to users for accessing private repo PRs. If user concerns arise, can be scoped down to `public_repo` for public-only access
-- **Token Lifetime**: Assumes GitHub tokens do not expire automatically (they remain valid until revoked), so no refresh token flow is needed
+- **Token Lifetime**: Assumes GitHub PATs do not expire automatically (they remain valid until revoked), so no refresh token flow is needed
+- **GitHub Enterprise**: Assumes users know their GitHub Enterprise API base URL (typically `https://github.enterprise.com/api/v3`)
+- **PR Definition**: Assumes "PRs needing review" means PRs where the user is explicitly requested as a reviewer (via `review-requested:<username>` query). Does not include PRs where user is in a requested team or assigned
+- **Single Account**: Assumes single GitHub account per app instance. Multi-account switching is out of scope for MVP
+- **Platform**: macOS-only using SwiftUI. iOS support can be added later with minimal changes
+- **Pagination**: Assumes fetching the first 50 PRs is sufficient for MVP. Pagination can be added later if needed
+- **Offline Support**: Assumes no offline caching of PRs. App requires network connectivity to display data
+- **Notifications**: Assumes no push notifications or background refresh. Users must open the app to see updated PR lists
 - **PR Definition**: Assumes "PRs needing review" means PRs where the user is explicitly requested as a reviewer (via `review-requested:<username>` query). Does not include PRs where user is in a requested team or assigned
 - **Single Account**: Assumes single GitHub account per app instance. Multi-account switching is out of scope for MVP
 - **Platform**: Assumes iOS/macOS using SwiftUI. If macOS-specific considerations exist (menu bar, multiple windows), they are out of scope for MVP

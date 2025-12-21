@@ -1,41 +1,41 @@
 import Foundation
 
 /// Represents a GitHub pull request awaiting the user's review
-struct PullRequest: Identifiable, Equatable, Sendable {
+struct PullRequest: Identifiable, Equatable, Sendable, Decodable {
     /// Unique identifier in "owner/repo#number" format
     var id: String {
         "\(repositoryOwner)/\(repositoryName)#\(number)"
     }
-    
+
     /// Repository owner username (e.g., "apple")
     let repositoryOwner: String
-    
+
     /// Repository name (e.g., "swift")
     let repositoryName: String
-    
+
     /// PR number within repository
     let number: Int
-    
+
     /// PR title
     let title: String
-    
+
     /// Username of PR author
     let authorLogin: String
-    
+
     /// Avatar URL for PR author
     let authorAvatarURL: URL?
-    
+
     /// Last update timestamp
     let updatedAt: Date
-    
+
     /// GitHub web URL for opening PR
     let htmlURL: URL
-    
+
     /// Repository full name in "owner/repo" format
     var repositoryFullName: String {
         "\(repositoryOwner)/\(repositoryName)"
     }
-    
+
     /// Creates a new pull request
     /// - Parameters:
     ///   - repositoryOwner: Repository owner username (must not be empty)
@@ -62,7 +62,7 @@ struct PullRequest: Identifiable, Equatable, Sendable {
         precondition(!title.isEmpty, "PR title cannot be empty")
         precondition(!authorLogin.isEmpty, "Author login cannot be empty")
         precondition(updatedAt <= Date(), "Updated date cannot be in future")
-        
+
         self.repositoryOwner = repositoryOwner
         self.repositoryName = repositoryName
         self.number = number

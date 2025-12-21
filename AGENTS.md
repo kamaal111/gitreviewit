@@ -1,19 +1,23 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Sources: `GitReviewIt/` contains SwiftUI app code (`GitReviewItApp.swift`, `ContentView.swift`).
-- Assets: `GitReviewIt/Assets.xcassets/` for colors and app icons.
-- Xcode Project: `GitReviewIt.xcodeproj/` manages targets and build settings.
-- Automation & Specs: `.github/` (agents/prompts) and `.specify/` (templates, scripts) support planning and review workflows.
+- App Code: `app/` folder contains the macOS SwiftUI app
+  - Swift Package: `app/GitReviewItApp/` contains all source code as a Swift Package
+  - Sources: `app/GitReviewItApp/Sources/GitReviewItApp/` for app code (`GitReviewItApp.swift`, `ContentView.swift`)
+  - Tests: `app/GitReviewItApp/Tests/GitReviewItAppTests/` for test code
+  - Xcode Project: `app/GitReviewIt.xcodeproj/` manages build settings
+- Future Server: Root-level `server/` can be added later for OAuth proxy or backend services
+- Automation & Specs: `.github/` (agents/prompts), `.specify/` (templates), and `specs/` (feature specs) support planning and review workflows.
 
 ## Build, Test, and Development Commands
-- **Justfile Available**: Use `just` to run common build commands. See `just --list` for all available commands.
-- Quick build: `just build` (compiles the app).
-- Clean build: `just clean-build` (removes artifacts and compiles fresh).
-- Run tests: `just test` (when tests exist).
-- Open in Xcode: `just open` or `open GitReviewIt.xcodeproj` (build and run with the default scheme).
-- CLI build (manual): `xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' build` (compiles the app).
-- CLI tests (manual): `xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' test`.
+- **Justfile Available**: Use `just` to run common build commands from `app/` folder. See `just --list` for all available commands.
+- Quick build: `cd app && just build` (compiles the app).
+- Clean build: `cd app && just clean-build` (removes artifacts and compiles fresh).
+- Run tests: `cd app && just test` (when tests exist).
+- Open in Xcode: `cd app && just open` or `open app/GitReviewIt.xcodeproj` (build and run with the default scheme).
+- CLI build (manual): `cd app && xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' build` (compiles the app).
+- CLI tests (manual): `cd app && xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' test`.
+- **Swift Package**: All code is in a Swift Package, so no manual target management needed - just add files to the package.
 
 ## Coding Style & Naming Conventions
 - Language: Swift (SwiftUI). Use 4-space indentation and limit line length to ~120 chars.
@@ -21,12 +25,19 @@
 - Files: One primary type per file; filename matches type name.
 - Architecture: Prefer MVVM for features; keep views declarative and business logic in view models/services.
 - Imports: Keep UI separated from domain logic; avoid unnecessary cross-layer dependencies.
+- **Swift Concurrency**: Project uses Swift 6 with strict concurrency checking enabled:
+  - NEVER use `nonisolated(unsafe)` in production code - it disables Swift's data race safety guarantees
+  - Use proper actor isolation (`@MainActor`, `actor`) to protect shared mutable state
+  - For UI components and AppKit/UIKit types, use `@MainActor` since they must run on the main thread
+  - Mark protocols with `Sendable` when they cross actor boundaries
+  - Prefer `async/await` over completion handlers for asynchronous operations
 
 ## Testing Guidelines
-- Framework: XCTest. Create a `GitReviewItTests` target mirroring app modules.
+- Framework: XCTest. Tests are in the Swift Package at `app/GitReviewItApp/Tests/GitReviewItAppTests/`.
 - Naming: `FeatureNameTests`, test methods start with `test...` and describe behavior (e.g., `testLoadingRecentCommitsDisplaysList`).
 - Scope: Focus on view models and pure logic; UI verified via snapshots or previews as needed.
-- Running: From Xcode’s Test action or the CLI command above.
+- Running: From Xcode's Test action, via `just test`, or the CLI command above.
+- **No manual target setup needed**: Swift Package manages test targets automatically.
 
 ## Commit & Pull Request Guidelines
 - Commits: Write imperative, scoped messages (e.g., `Add commit list view`). Keep changes focused and incremental.
@@ -34,7 +45,9 @@
 - Reviews: Address comments with follow-up commits; avoid force-push after reviews start unless requested.
 
 ## Security & Configuration Tips
-- Secrets: Do not commit tokens or credentials. Store GitHub tokens securely (e.g., macOS Keychain) and access via injected configuration.
+- Secrets: Do not commit tokens or credentials. Store GitHub Personal Access Tokens securely in macOS Keychain.
+- Authentication: App uses Personal Access Token approach (not OAuth) for maximum flexibility with GitHub Enterprise.
+- GitHub Enterprise Support: Users can specify custom API base URLs (e.g., `https://github.company.com/api/v3`) for self-hosted instances.
 - Info.plist is generated by the project; prefer build settings over manual plist edits where possible.
 
 ## Agent-Specific Notes

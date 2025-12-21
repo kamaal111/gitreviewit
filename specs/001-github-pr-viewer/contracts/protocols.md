@@ -51,40 +51,40 @@ guard response.statusCode == 200 else {
 
 ---
 
-## TokenStorage Protocol
+## CredentialStorage Protocol
 
-**Purpose**: Abstraction for secure token persistence (Keychain).
+**Purpose**: Abstraction for secure credential persistence (Keychain).
 
 **Responsibilities**:
-- Save OAuth token securely
-- Retrieve stored token
-- Delete token on logout
+- Save GitHub credentials (token + baseURL) securely
+- Retrieve stored credentials
+- Delete credentials on logout
 
 **Protocol Definition**:
 ```swift
-/// Abstraction for secure token storage. Implementations should
-/// store tokens using platform-appropriate secure storage (e.g., Keychain).
-protocol TokenStorage: Sendable {
-    /// Saves a token to secure storage
+/// Abstraction for secure credential storage. Implementations should
+/// store credentials using platform-appropriate secure storage (e.g., Keychain).
+protocol CredentialStorage: Sendable {
+    /// Saves credentials to secure storage
     ///
-    /// - Parameter token: The token string to save
-    /// - Throws: TokenStorageError if save fails
-    func saveToken(_ token: String) async throws
+    /// - Parameter credentials: The GitHubCredentials to save (token + baseURL)
+    /// - Throws: CredentialStorageError if save fails
+    func saveCredentials(_ credentials: GitHubCredentials) async throws
     
-    /// Loads the stored token from secure storage
+    /// Loads the stored credentials from secure storage
     ///
-    /// - Returns: The token string, or nil if no token is stored
-    /// - Throws: TokenStorageError if load fails (excluding "not found" case)
-    func loadToken() async throws -> String?
+    /// - Returns: The GitHubCredentials, or nil if no credentials are stored
+    /// - Throws: CredentialStorageError if load fails (excluding "not found" case)
+    func loadCredentials() async throws -> GitHubCredentials?
     
-    /// Deletes the stored token from secure storage
+    /// Deletes the stored credentials from secure storage
     ///
-    /// - Throws: TokenStorageError if delete fails
-    func deleteToken() async throws
+    /// - Throws: CredentialStorageError if delete fails
+    func deleteCredentials() async throws
 }
 
-/// Errors specific to token storage operations
-enum TokenStorageError: Error, LocalizedError {
+/// Errors specific to credential storage operations
+enum CredentialStorageError: Error, LocalizedError {
     case saveFailed(OSStatus)
     case loadFailed(OSStatus)
     case deleteFailed(OSStatus)
@@ -93,99 +93,35 @@ enum TokenStorageError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .saveFailed(let status):
-            return "Failed to save token to keychain (status: \(status))"
+            return "Failed to save credentials to keychain (status: \(status))"
         case .loadFailed(let status):
-            return "Failed to load token from keychain (status: \(status))"
+            return "Failed to load credentials from keychain (status: \(status))"
         case .deleteFailed(let status):
-            return "Failed to delete token from keychain (status: \(status))"
+            return "Failed to delete credentials from keychain (status: \(status))"
         case .notFound:
-            return "No token found in keychain"
+            return "No credentials found in keychain"
         }
     }
 }
 ```
 
 **Implementations**:
-- Production: `KeychainTokenStorage` (uses Security framework)
-- Testing: `MockTokenStorage` (in-memory dictionary)
+- Production: `KeychainCredentialStorage` (uses Security framework, stores as JSON)
+- Testing: `MockCredentialStorage` (in-memory dictionary)
 
 **Example Usage**:
 ```swift
-// Save token after OAuth
-try await tokenStorage.saveToken("ghp_abc123...")
+// Save credentials after PAT validation
+let credentials = GitHubCredentials(token: "ghp_abc123...", baseURL: "https://api.github.com")
+try await credentialStorage.saveCredentials(credentials)
 
-// Load token at app launch
-if let token = try await tokenStorage.loadToken() {
+// Load credentials at app launch
+if let credentials = try await credentialStorage.loadCredentials() {
     // User is authenticated
 }
 
-// Delete token on logout
-try await tokenStorage.deleteToken()
-```
-
----
-
-## OAuthManager Protocol
-
-**Purpose**: Abstraction for GitHub OAuth flow (ASWebAuthenticationSession).
-
-**Responsibilities**:
-- Present OAuth web authentication UI
-- Handle redirect callback
-- Return authorization code or error
-
-**Protocol Definition**:
-```swift
-/// Abstraction for OAuth authentication flow. Implementations should
-/// present platform-appropriate OAuth UI and handle callbacks.
-protocol OAuthManager: Sendable {
-    /// Starts OAuth authentication flow
-    ///
-    /// - Parameters:
-    ///   - authorizationURL: The OAuth provider's authorization URL with query params
-    ///   - callbackURLScheme: The custom URL scheme for redirect (e.g., "gitreviewit")
-    /// - Returns: The authorization code from successful authentication
-    /// - Throws: OAuthError if authentication fails or is cancelled
-    func authenticate(
-        authorizationURL: URL,
-        callbackURLScheme: String
-    ) async throws -> String  // Returns authorization code
-}
-
-/// Errors specific to OAuth operations
-enum OAuthError: Error, LocalizedError {
-    case userCancelled
-    case invalidState  // State parameter mismatch (CSRF protection)
-    case invalidCallback  // Callback URL malformed or missing code
-    case authenticationFailed(String)  // OAuth error from provider
-    
-    var errorDescription: String? {
-        switch self {
-        case .userCancelled:
-            return "Authentication was cancelled."
-        case .invalidState:
-            return "Authentication failed: security validation error."
-        case .invalidCallback:
-            return "Authentication failed: invalid response from GitHub."
-        case .authenticationFailed(let reason):
-            return "Authentication failed: \(reason)"
-        }
-    }
-}
-```
-
-**Implementations**:
-- Production: `ASWebAuthenticationSessionOAuthManager`
-- Testing: `MockOAuthManager` (returns predetermined code or error)
-
-**Example Usage**:
-```swift
-let authURL = URL(string: "https://github.com/login/oauth/authorize?client_id=...&state=...")!
-let code = try await oauthManager.authenticate(
-    authorizationURL: authURL,
-    callbackURLScheme: "gitreviewit"
-)
-// Exchange code for token via GitHub API
+// Delete credentials on logout
+try await credentialStorage.deleteCredentials()
 ```
 
 ---
@@ -197,7 +133,7 @@ let code = try await oauthManager.authenticate(
 **Responsibilities**:
 - Fetch authenticated user info
 - Fetch pull requests awaiting review
-- Handle token exchange (OAuth code → access token)
+- Support GitHub Enterprise via configurable base URL
 - Map HTTP responses to domain models
 - Map HTTP errors to APIError
 
@@ -207,107 +143,54 @@ let code = try await oauthManager.authenticate(
 /// Implementations handle authentication, request construction,
 /// response parsing, and error mapping.
 protocol GitHubAPI: Sendable {
-    /// Exchanges OAuth authorization code for access token
-    ///
-    /// - Parameters:
-    ///   - code: Authorization code from OAuth callback
-    ///   - clientId: GitHub OAuth app client ID
-    ///   - clientSecret: GitHub OAuth app client secret
-    /// - Returns: GitHubToken with access token and metadata
-    /// - Throws: APIError if exchange fails
-    func exchangeCodeForToken(
-        code: String,
-        clientId: String,
-        clientSecret: String
-    ) async throws -> GitHubToken
-    
     /// Fetches the authenticated user's GitHub profile
     ///
-    /// - Parameter token: OAuth access token
+    /// - Parameter credentials: GitHub credentials (token + baseURL)
     /// - Returns: AuthenticatedUser with username and profile info
     /// - Throws: APIError if request fails or token is invalid
-    func fetchUser(token: String) async throws -> AuthenticatedUser
+    func fetchUser(credentials: GitHubCredentials) async throws -> AuthenticatedUser
     
     /// Fetches pull requests where the authenticated user's review is requested
     ///
-    /// - Parameter token: OAuth access token
+    /// - Parameter credentials: GitHub credentials (token + baseURL)
     /// - Returns: Array of PullRequest objects (may be empty)
     /// - Throws: APIError if request fails
-    func fetchReviewRequests(token: String) async throws -> [PullRequest]
+    func fetchReviewRequests(credentials: GitHubCredentials) async throws -> [PullRequest]
 }
 ```
 
 **Implementations**:
-- Production: `GitHubAPIClient` (constructs requests, parses JSON)
+- Production: `GitHubAPIClient` (constructs requests, parses JSON, supports GHE)
 - Testing: `MockGitHubAPI` (returns fixture data without network calls)
 
 **Example Usage**:
 ```swift
-// Exchange code for token
-let token = try await githubAPI.exchangeCodeForToken(
-    code: "oauth_code_123",
-    clientId: "client_id",
-    clientSecret: "client_secret"
+// Create credentials with PAT and base URL
+let credentials = GitHubCredentials(
+    token: "ghp_abc123...",
+    baseURL: "https://api.github.com"  // or https://github.company.com/api/v3 for GHE
 )
 
 // Fetch user
-let user = try await githubAPI.fetchUser(token: token.value)
+let user = try await githubAPI.fetchUser(credentials: credentials)
 
 // Fetch PRs
-let prs = try await githubAPI.fetchReviewRequests(token: token.value)
+let prs = try await githubAPI.fetchReviewRequests(credentials: credentials)
 ```
 
 ---
 
 ## Request/Response Structures
 
-### OAuth Token Exchange Request
-
-**Endpoint**: `POST https://github.com/login/oauth/access_token`
-
-**Headers**:
-```
-Accept: application/json
-Content-Type: application/json
-```
-
-**Request Body**:
-```json
-{
-  "client_id": "your_client_id",
-  "client_secret": "your_client_secret",
-  "code": "authorization_code",
-  "redirect_uri": "gitreviewit://oauth-callback"
-}
-```
-
-**Success Response (200)**:
-```json
-{
-  "access_token": "gho_16C7e42F292c6912E7710c838347Ae178B4a",
-  "token_type": "bearer",
-  "scope": "repo,user"
-}
-```
-
-**Error Response (400/401)**:
-```json
-{
-  "error": "bad_verification_code",
-  "error_description": "The code passed is incorrect or expired.",
-  "error_uri": "https://docs.github.com/apps/managing-oauth-apps/troubleshooting-oauth-app-access-token-request-errors"
-}
-```
-
----
-
 ### Get User Request
 
-**Endpoint**: `GET https://api.github.com/user`
+**Endpoint**: `GET {baseURL}/user`
+- Standard GitHub: `https://api.github.com/user`
+- GitHub Enterprise: `https://github.company.com/api/v3/user`
 
 **Headers**:
 ```
-Authorization: Bearer gho_16C7e42F292c6912E7710c838347Ae178B4a
+Authorization: Bearer ghp_abc123...
 Accept: application/vnd.github+json
 X-GitHub-Api-Version: 2022-11-28
 ```
@@ -336,7 +219,9 @@ X-GitHub-Api-Version: 2022-11-28
 
 ### Search Pull Requests Request
 
-**Endpoint**: `GET https://api.github.com/search/issues`
+**Endpoint**: `GET {baseURL}/search/issues`
+- Standard GitHub: `https://api.github.com/search/issues`
+- GitHub Enterprise: `https://github.company.com/api/v3/search/issues`
 
 **Query Parameters**:
 ```
@@ -348,7 +233,7 @@ per_page=50
 
 **Headers**:
 ```
-Authorization: Bearer gho_16C7e42F292c6912E7710c838347Ae178B4a
+Authorization: Bearer ghp_abc123...
 Accept: application/vnd.github+json
 X-GitHub-Api-Version: 2022-11-28
 ```
