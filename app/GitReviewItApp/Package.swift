@@ -7,10 +7,16 @@ let package = Package(
     name: "GitReviewItApp",
     platforms: [.macOS(.v12)],
     products: [
-        .library(name: "GitReviewItApp", targets: ["GitReviewItApp"]),
+        .library(name: "GitReviewItApp", targets: ["GitReviewItApp"])
     ],
     targets: [
         .target(name: "GitReviewItApp"),
-        .testTarget(name: "GitReviewItAppTests", dependencies: ["GitReviewItApp"]),
+        .testTarget(
+            name: "GitReviewItAppTests",
+            dependencies: ["GitReviewItApp"],
+            resources: [
+                .process("Fixtures")
+            ]
+        ),
     ]
 )
