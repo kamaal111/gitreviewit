@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2CAF38792EF805D5004F0A3D /* GitReviewItApp in Frameworks */ = {isa = PBXBuildFile; productRef = 2CAF38782EF805D5004F0A3D /* GitReviewItApp */; };
+		2C6FC02D2EF80F3F008EFD2F /* GitReviewItApp in Frameworks */ = {isa = PBXBuildFile; productRef = 2C6FC02C2EF80F3F008EFD2F /* GitReviewItApp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2CAF38792EF805D5004F0A3D /* GitReviewItApp in Frameworks */,
+				2C6FC02D2EF80F3F008EFD2F /* GitReviewItApp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,7 +93,7 @@
 			);
 			name = GitReviewIt;
 			packageProductDependencies = (
-				2CAF38782EF805D5004F0A3D /* GitReviewItApp */,
+				2C6FC02C2EF80F3F008EFD2F /* GitReviewItApp */,
 			);
 			productName = GitReviewIt;
 			productReference = 2CCE7FBF2EF7265D006B6614 /* GitReviewIt.app */;
@@ -364,7 +364,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2CAF38782EF805D5004F0A3D /* GitReviewItApp */ = {
+		2C6FC02C2EF80F3F008EFD2F /* GitReviewItApp */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GitReviewItApp;
 		};

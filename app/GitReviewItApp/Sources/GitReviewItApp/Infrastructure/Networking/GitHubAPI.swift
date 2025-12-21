@@ -4,33 +4,19 @@ import Foundation
 /// Implementations handle authentication, request construction,
 /// response parsing, and error mapping.
 protocol GitHubAPI: Sendable {
-    /// Exchanges OAuth authorization code for access token
-    ///
-    /// - Parameters:
-    ///   - code: Authorization code from OAuth callback
-    ///   - clientId: GitHub OAuth app client ID
-    ///   - clientSecret: GitHub OAuth app client secret
-    /// - Returns: GitHubToken with access token and metadata
-    /// - Throws: APIError if exchange fails
-    func exchangeCodeForToken(
-        code: String,
-        clientId: String,
-        clientSecret: String
-    ) async throws -> GitHubToken
-    
     /// Fetches the authenticated user's GitHub profile
     ///
-    /// - Parameter token: OAuth access token
+    /// - Parameter credentials: GitHub credentials (token + baseURL)
     /// - Returns: AuthenticatedUser with username and profile info
     /// - Throws: APIError if request fails or token is invalid
-    func fetchUser(token: String) async throws -> AuthenticatedUser
-    
+    func fetchUser(credentials: GitHubCredentials) async throws -> AuthenticatedUser
+
     /// Fetches pull requests where the authenticated user's review is requested
     ///
-    /// - Parameter token: OAuth access token
+    /// - Parameter credentials: GitHub credentials (token + baseURL)
     /// - Returns: Array of PullRequest objects (may be empty)
     /// - Throws: APIError if request fails
-    func fetchReviewRequests(token: String) async throws -> [PullRequest]
+    func fetchReviewRequests(credentials: GitHubCredentials) async throws -> [PullRequest]
 }
 
 // MARK: - GitHubAPIClient
@@ -39,98 +25,35 @@ protocol GitHubAPI: Sendable {
 final class GitHubAPIClient: GitHubAPI {
     private let httpClient: HTTPClient
     private let decoder: JSONDecoder
-    private let apiBaseURL: String
-    private let oauthBaseURL: String
-    
+
     /// Initialize with an HTTPClient for network operations
-    /// - Parameters:
-    ///   - httpClient: HTTPClient for making network requests
-    ///   - apiBaseURL: Base URL for GitHub API (default: https://api.github.com for GitHub.com, or https://github.enterprise.com/api/v3 for Enterprise)
-    ///   - oauthBaseURL: Base URL for OAuth endpoints (default: https://github.com for GitHub.com, or https://github.enterprise.com for Enterprise)
-    init(
-        httpClient: HTTPClient,
-        apiBaseURL: String = "https://api.github.com",
-        oauthBaseURL: String = "https://github.com"
-    ) {
+    /// - Parameter httpClient: HTTPClient for making network requests
+    init(httpClient: HTTPClient) {
         self.httpClient = httpClient
-        self.apiBaseURL = apiBaseURL.trimmingSuffix("/")
-        self.oauthBaseURL = oauthBaseURL.trimmingSuffix("/")
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .iso8601
     }
-    
+
     // MARK: - GitHubAPI Methods
-    
-    func exchangeCodeForToken(
-        code: String,
-        clientId: String,
-        clientSecret: String
-    ) async throws -> GitHubToken {
-        guard let url = URL(string: "\(oauthBaseURL)/login/oauth/access_token") else {
+
+    func fetchUser(credentials: GitHubCredentials) async throws -> AuthenticatedUser {
+        let baseURL = credentials.baseURL.trimmingSuffix("/")
+        guard let url = URL(string: "\(baseURL)/user") else {
             throw APIError.invalidResponse
         }
-        
+
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body: [String: String] = [
-            "client_id": clientId,
-            "client_secret": clientSecret,
-            "code": code,
-            "redirect_uri": "gitreviewit://oauth-callback"
-        ]
-        request.httpBody = try JSONEncoder().encode(body)
-        
-        do {
-            let (data, response) = try await httpClient.perform(request)
-            
-            // Check for OAuth-specific errors in response
-            if let errorResponse = try? decoder.decode(OAuthErrorResponse.self, from: data) {
-                throw APIError.httpError(statusCode: response.statusCode, message: errorResponse.error_description)
-            }
-            
-            guard response.statusCode == 200 else {
-                throw mapHTTPError(statusCode: response.statusCode, data: data, response: response)
-            }
-            
-            let tokenResponse = try decoder.decode(TokenResponse.self, from: data)
-            
-            // Parse scopes from comma-separated string
-            let scopes = Set(tokenResponse.scope.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) })
-            
-            return GitHubToken(
-                value: tokenResponse.access_token,
-                createdAt: Date(),
-                scopes: scopes.isEmpty ? [""] : scopes
-            )
-        } catch let error as HTTPError {
-            throw mapHTTPErrorToAPIError(error)
-        } catch let error as APIError {
-            throw error
-        } catch {
-            throw APIError.decodingError(error)
-        }
-    }
-    
-    func fetchUser(token: String) async throws -> AuthenticatedUser {
-        guard let url = URL(string: "\(apiBaseURL)/user") else {
-            throw APIError.invalidResponse
-        }
-        
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(credentials.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
-        
+
         do {
             let (data, response) = try await httpClient.perform(request)
-            
+
             guard (200...299).contains(response.statusCode) else {
                 throw mapHTTPError(statusCode: response.statusCode, data: data, response: response)
             }
-            
+
             return try decoder.decode(AuthenticatedUser.self, from: data)
         } catch let error as HTTPError {
             throw mapHTTPErrorToAPIError(error)
@@ -140,60 +63,37 @@ final class GitHubAPIClient: GitHubAPI {
             throw APIError.decodingError(error)
         }
     }
-    
-    func fetchReviewRequests(token: String) async throws -> [PullRequest] {
+
+    func fetchReviewRequests(credentials: GitHubCredentials) async throws -> [PullRequest] {
         // First, fetch the authenticated user to get their username
-        let user = try await fetchUser(token: token)
-        
+        let user = try await fetchUser(credentials: credentials)
+
         // Build search query for PRs where this user's review is requested
         let query = "type:pr+state:open+review-requested:\(user.login)"
-        guard var components = URLComponents(string: "\(apiBaseURL)/search/issues") else {
+        let baseURL = credentials.baseURL.trimmingSuffix("/")
+        guard var components = URLComponents(string: "\(baseURL)/search/issues") else {
             throw APIError.invalidResponse
         }
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "sort", value: "updated"),
-            URLQueryItem(name: "order", value: "desc"),
-            URLQueryItem(name: "per_page", value: "50")
-        ]
-        
+        components.queryItems = [URLQueryItem(name: "q", value: query)]
+
         guard let url = components.url else {
             throw APIError.invalidResponse
         }
-        
+
         var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(credentials.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
-        
+
         do {
             let (data, response) = try await httpClient.perform(request)
-            
+
             guard (200...299).contains(response.statusCode) else {
                 throw mapHTTPError(statusCode: response.statusCode, data: data, response: response)
             }
-            
-            let searchResponse = try decoder.decode(SearchIssuesResponse.self, from: data)
-            
-            // Convert search results to PullRequest models
-            return searchResponse.items.compactMap { item in
-                // Extract repository info from repository_url
-                // Format: "https://api.github.com/repos/owner/repo"
-                guard let repoComponents = extractRepositoryInfo(from: item.repository_url) else {
-                    return nil
-                }
-                
-                return PullRequest(
-                    repositoryOwner: repoComponents.owner,
-                    repositoryName: repoComponents.name,
-                    number: item.number,
-                    title: item.title,
-                    authorLogin: item.user.login,
-                    authorAvatarURL: item.user.avatar_url,
-                    updatedAt: item.updated_at,
-                    htmlURL: item.html_url
-                )
-            }
+
+            let searchResponse = try decoder.decode(GitHubSearchResponse.self, from: data)
+            return searchResponse.items
         } catch let error as HTTPError {
             throw mapHTTPErrorToAPIError(error)
         } catch let error as APIError {
@@ -202,9 +102,9 @@ final class GitHubAPIClient: GitHubAPI {
             throw APIError.decodingError(error)
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func mapHTTPError(statusCode: Int, data: Data, response: HTTPURLResponse) -> APIError {
         switch statusCode {
         case 401:
@@ -212,7 +112,8 @@ final class GitHubAPIClient: GitHubAPI {
         case 403:
             // Check for rate limiting
             if let rateLimitReset = response.value(forHTTPHeaderField: "X-RateLimit-Reset"),
-               let timestamp = TimeInterval(rateLimitReset) {
+                let timestamp = TimeInterval(rateLimitReset)
+            {
                 let resetDate = Date(timeIntervalSince1970: timestamp)
                 return .rateLimitExceeded(resetAt: resetDate)
             }
@@ -231,7 +132,7 @@ final class GitHubAPIClient: GitHubAPI {
             return .httpError(statusCode: statusCode, message: nil)
         }
     }
-    
+
     private func mapHTTPErrorToAPIError(_ error: HTTPError) -> APIError {
         switch error {
         case .connectionFailed, .timeout, .dnsError:
@@ -244,18 +145,19 @@ final class GitHubAPIClient: GitHubAPI {
             return .unknown(error)
         }
     }
-    
+
     private func extractRepositoryInfo(from urlString: String) -> (owner: String, name: String)? {
         // Parse "https://api.github.com/repos/owner/repo"
         guard let url = URL(string: urlString) else { return nil }
         let components = url.pathComponents
-        
+
         // Path components: ["", "repos", "owner", "repo"]
         guard components.count >= 4,
-              components[1] == "repos" else {
+            components[1] == "repos"
+        else {
             return nil
         }
-        
+
         return (owner: components[2], name: components[3])
     }
 }
@@ -275,6 +177,10 @@ private struct OAuthErrorResponse: Decodable {
 
 private struct GitHubErrorResponse: Decodable {
     let message: String
+}
+
+private struct GitHubSearchResponse: Decodable {
+    let items: [PullRequest]
 }
 
 private struct SearchIssuesResponse: Decodable {
@@ -300,9 +206,9 @@ private struct SearchUser: Decodable {
 
 // MARK: - String Extension
 
-private extension String {
+extension String {
     /// Removes trailing slash from string if present
-    func trimmingSuffix(_ suffix: String) -> String {
+    fileprivate func trimmingSuffix(_ suffix: String) -> String {
         guard hasSuffix(suffix) else { return self }
         return String(dropLast(suffix.count))
     }

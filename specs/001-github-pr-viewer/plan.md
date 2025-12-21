@@ -4,17 +4,18 @@
 
 ## Summary
 
-**Primary Requirement**: Build a macOS SwiftUI app that authenticates with GitHub OAuth and displays pull requests awaiting the user's review.
+**Primary Requirement**: Build a macOS SwiftUI app that authenticates with GitHub (including GitHub Enterprise) using Personal Access Tokens and displays pull requests awaiting the user's review.
 
 **Technical Approach**: 
 - SwiftUI with Observation framework for state management
-- ASWebAuthenticationSession for native OAuth flow (no embedded web views)
+- Personal Access Token authentication (user-provided via UI, validated via GitHub API)
 - Protocol-oriented architecture with dependency injection for testability
-- URLSession for networking; Keychain for secure token storage
+- URLSession for networking; Keychain for secure credential storage (token + baseURL)
 - Integration-style testing with mocked HTTP transport layer using JSON fixtures
 - Unidirectional data flow: Views → Intent → State Container → View Update
-- 12 incremental PRs, each delivering testable, working functionality
+- Incremental PRs, each delivering testable, working functionality
 - Zero third-party dependencies (stdlib + Foundation + Security framework only)
+- GitHub Enterprise support via configurable API base URL
 
 ## Technical Context
 
@@ -26,7 +27,7 @@
 **Target Platform**: macOS 15.0+ (single-platform MVP)  
 **Architecture**: Unidirectional data flow with view-owned state containers via `@State`  
 **Deployment Target**: macOS 15.0  
-**Performance Goals**: PR list loads in <3 seconds; smooth scrolling for 100+ items; OAuth completes in <30 seconds  
+**Performance Goals**: PR list loads in <3 seconds; smooth scrolling for 100+ items; credential validation completes in <5 seconds  
 **Constraints**: No backend; minimal dependencies; protocol-based boundaries; SwiftUI-only UI  
 **Scale/Scope**: 3 main screens (Login, PR List, Error states); ~10-15 source files; support 100+ PRs in list
 
