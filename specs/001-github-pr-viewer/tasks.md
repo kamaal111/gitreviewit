@@ -213,13 +213,13 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T095 [P] Add PR list pull-to-refresh gesture in PullRequestListView
-- [ ] T096 [P] Add app icon in Assets.xcassets
-- [ ] T097 [P] Add accent color customization in Assets.xcassets
-- [ ] T098 [P] Implement proper SwiftUI preview providers for all views
-- [ ] T099 [P] Add accessibility labels for VoiceOver support
-- [ ] T100 [P] Add loading performance optimization for large PR lists (100+ items)
-- [ ] T101 [P] Add proper spacing and padding throughout UI per Apple HIG
+- [X] T095 [P] Add PR list pull-to-refresh gesture in PullRequestListView
+- [X] T096 [P] Add app icon in Assets.xcassets
+- [X] T097 [P] Add accent color customization in Assets.xcassets
+- [X] T098 [P] Implement proper SwiftUI preview providers for all views
+- [X] T099 [P] Add accessibility labels for VoiceOver support
+- [X] T100 [P] Add loading performance optimization for large PR lists (100+ items)
+- [X] T101 [P] Add proper spacing and padding throughout UI per Apple HIG
 - [ ] T102 Validate all quickstart.md test scenarios work end-to-end
 - [ ] T103 Add inline code documentation for all public types
 - [ ] T104 [P] Code review and SwiftLint cleanup
