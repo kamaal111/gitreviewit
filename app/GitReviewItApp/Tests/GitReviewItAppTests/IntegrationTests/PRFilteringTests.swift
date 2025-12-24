@@ -350,6 +350,199 @@ struct PRFilteringTests {
         #expect(result.first?.title == "Update API")
     }
 
+    // MARK: - Team Filtering
+
+    @Test
+    func `Filter by single team shows only repos in that team`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "backend-service")
+        let pr2 = makePR(owner: "CompanyA", repo: "frontend")
+        let pr3 = makePR(owner: "CompanyB", repo: "api")
+
+        let backendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/backend-service"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [backendTeam]
+        )
+
+        #expect(result.count == 1)
+        #expect(result.first?.repositoryFullName == "CompanyA/backend-service")
+    }
+
+    @Test
+    func `Filter by multiple teams shows repos from all selected teams`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "backend")
+        let pr2 = makePR(owner: "CompanyA", repo: "frontend")
+        let pr3 = makePR(owner: "CompanyA", repo: "mobile")
+
+        let backendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/backend"]
+        )
+
+        let frontendTeam = Team(
+            slug: "frontend-team",
+            name: "Frontend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/frontend"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team", "frontend-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [backendTeam, frontendTeam]
+        )
+
+        #expect(result.count == 2)
+
+        let repos = Set(result.map { $0.repositoryFullName })
+        #expect(repos == ["CompanyA/backend", "CompanyA/frontend"])
+    }
+
+    @Test
+    func `Team filter with empty team metadata returns no results`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "backend")
+        let pr2 = makePR(owner: "CompanyA", repo: "frontend")
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team"]
+        )
+
+        // No teams available - simulates graceful degradation
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2],
+            teamMetadata: []
+        )
+
+        #expect(result.isEmpty)
+    }
+
+    @Test
+    func `Team filter with team that has multiple repositories`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "service-a")
+        let pr2 = makePR(owner: "CompanyA", repo: "service-b")
+        let pr3 = makePR(owner: "CompanyA", repo: "service-c")
+
+        let infraTeam = Team(
+            slug: "infra-team",
+            name: "Infrastructure Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/service-a", "CompanyA/service-b"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["infra-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [infraTeam]
+        )
+
+        #expect(result.count == 2)
+
+        let repos = Set(result.map { $0.repositoryFullName })
+        #expect(repos == ["CompanyA/service-a", "CompanyA/service-b"])
+    }
+
+    @Test
+    func `Combine organization and team filters (AND logic)`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "backend")
+        let pr2 = makePR(owner: "CompanyB", repo: "backend")
+        let pr3 = makePR(owner: "CompanyA", repo: "frontend")
+
+        let backendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/backend", "CompanyB/backend"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: ["CompanyA"],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [backendTeam]
+        )
+
+        // Should only show CompanyA/backend (matches both org and team)
+        #expect(result.count == 1)
+        #expect(result.first?.repositoryFullName == "CompanyA/backend")
+    }
+
+    @Test
+    func `Combine team filter and search query`() {
+        let pr1 = makePR(owner: "CompanyA", repo: "backend", title: "Fix API bug")
+        let pr2 = makePR(owner: "CompanyA", repo: "backend", title: "Update docs")
+        let pr3 = makePR(owner: "CompanyA", repo: "frontend", title: "Fix API bug")
+
+        let backendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/backend"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "API",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [backendTeam]
+        )
+
+        #expect(result.count == 1)
+        #expect(result.first?.repositoryFullName == "CompanyA/backend")
+        #expect(result.first?.title == "Fix API bug")
+    }
+
     // MARK: - Helper
 
     private func makePR(

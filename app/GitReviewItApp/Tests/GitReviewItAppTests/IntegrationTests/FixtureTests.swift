@@ -5,24 +5,12 @@ import Testing
 
 /// Tests that verify JSON fixtures can be loaded and decoded correctly
 struct FixtureTests {
-    // MARK: - Helper Methods
-
-    /// Loads fixture data from the Fixtures directory
-    private func loadFixture(named name: String) throws -> Data {
-        // Get the fixture file from the resource bundle (no subdirectory since SPM flattens resources)
-        guard let url = Bundle.module.url(forResource: name, withExtension: "json") else {
-            throw FixtureError.fileNotFound(name)
-        }
-
-        return try Data(contentsOf: url)
-    }
-
     // MARK: - User Response Tests
 
     @Test
     func `User response fixture decodes to AuthenticatedUser`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "user-response")
+        let data = try TestHelpers.loadFixture(.userResponse)
 
         // Decode to AuthenticatedUser (no key strategy needed - model has custom CodingKeys)
         let decoder = JSONDecoder()
@@ -38,7 +26,7 @@ struct FixtureTests {
     @Test
     func `User response fixture contains all required GitHub API fields`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "user-response")
+        let data = try TestHelpers.loadFixture(.userResponse)
 
         // Decode as generic JSON to verify structure
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
@@ -56,7 +44,7 @@ struct FixtureTests {
     @Test
     func `PRs response fixture decodes to search response with items`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "prs-response")
+        let data = try TestHelpers.loadFixture(.prsResponse)
 
         // Decode as search response
         let decoder = JSONDecoder()
@@ -74,7 +62,7 @@ struct FixtureTests {
     @Test
     func `PRs response fixture contains valid pull request data`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "prs-response")
+        let data = try TestHelpers.loadFixture(.prsResponse)
 
         // Decode as search response
         let decoder = JSONDecoder()
@@ -112,7 +100,7 @@ struct FixtureTests {
     @Test
     func `PRs response fixture HTML URLs are valid`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "prs-response")
+        let data = try TestHelpers.loadFixture(.prsResponse)
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -130,7 +118,7 @@ struct FixtureTests {
     @Test
     func `PRs response fixture timestamps are parseable`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "prs-response")
+        let data = try TestHelpers.loadFixture(.prsResponse)
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -150,7 +138,7 @@ struct FixtureTests {
     @Test
     func `Error responses fixture contains all expected error types`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "error-responses")
+        let data = try TestHelpers.loadFixture(.errorResponses)
 
         // Decode as generic JSON
         let json = try JSONSerialization.jsonObject(with: data) as? [String: [String: Any]]
@@ -176,7 +164,7 @@ struct FixtureTests {
     @Test
     func `Error responses fixture has proper message structure`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "error-responses")
+        let data = try TestHelpers.loadFixture(.errorResponses)
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: [String: Any]]
 
@@ -198,7 +186,7 @@ struct FixtureTests {
     @Test
     func `Error responses fixture validation failed includes error details`() throws {
         // Load the fixture
-        let data = try loadFixture(named: "error-responses")
+        let data = try TestHelpers.loadFixture(.errorResponses)
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let validationFailed = json?["validationFailed"] as? [String: Any]
@@ -224,7 +212,7 @@ struct FixtureTests {
     @Test
     func `User can be encoded and decoded maintaining data integrity`() throws {
         // Load original fixture
-        let originalData = try loadFixture(named: "user-response")
+        let originalData = try TestHelpers.loadFixture(.userResponse)
 
         let decoder = JSONDecoder()
 
@@ -245,7 +233,7 @@ struct FixtureTests {
     @Test
     func `Pull request search response maintains data integrity through encoding cycle`() throws {
         // Load original fixture
-        let originalData = try loadFixture(named: "prs-response")
+        let originalData = try TestHelpers.loadFixture(.prsResponse)
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -266,18 +254,6 @@ struct FixtureTests {
 }
 
 // MARK: - Supporting Types
-
-/// Errors that can occur when loading fixtures
-private enum FixtureError: Error, CustomStringConvertible {
-    case fileNotFound(String)
-
-    var description: String {
-        switch self {
-        case .fileNotFound(let name):
-            return "Fixture file '\(name).json' not found in test bundle"
-        }
-    }
-}
 
 /// Internal model for decoding GitHub search responses
 private struct GitHubSearchResponse: Decodable {

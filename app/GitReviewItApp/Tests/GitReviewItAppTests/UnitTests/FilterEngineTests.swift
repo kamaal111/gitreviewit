@@ -5,8 +5,9 @@
 //  Created by Kamaal M Farah on 23/12/2025.
 //
 
-import Testing
 import Foundation
+import Testing
+
 @testable import GitReviewItApp
 
 @Suite("Filter Engine Tests")
@@ -73,8 +74,8 @@ struct FilterEngineTests {
 
     @Test
     func `apply filters by team`() {
-        let pr1 = makePR(owner: "OrgA", repo: "Backend") // In team
-        let pr2 = makePR(owner: "OrgA", repo: "Frontend") // Not in team
+        let pr1 = makePR(owner: "OrgA", repo: "Backend")  // In team
+        let pr2 = makePR(owner: "OrgA", repo: "Frontend")  // Not in team
 
         let team = Team(
             slug: "backend-team",
@@ -99,6 +100,71 @@ struct FilterEngineTests {
 
         #expect(result.count == 1)
         #expect(result.first?.repositoryName == "Backend")
+    }
+
+    @Test
+    func `apply returns no PRs when team filter active but team metadata empty`() {
+        let pr1 = makePR(owner: "OrgA", repo: "Backend")
+        let pr2 = makePR(owner: "OrgA", repo: "Frontend")
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team"]
+        )
+
+        // No team metadata available (empty array)
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2],
+            teamMetadata: []
+        )
+
+        // Should return no results since selected team doesn't exist in metadata
+        #expect(result.isEmpty)
+    }
+
+    @Test
+    func `apply filters by multiple teams`() {
+        let pr1 = makePR(owner: "OrgA", repo: "Backend")
+        let pr2 = makePR(owner: "OrgA", repo: "Frontend")
+        let pr3 = makePR(owner: "OrgA", repo: "Mobile")
+
+        let backendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "OrgA",
+            repositories: ["OrgA/Backend"]
+        )
+
+        let frontendTeam = Team(
+            slug: "frontend-team",
+            name: "Frontend Team",
+            organizationLogin: "OrgA",
+            repositories: ["OrgA/Frontend"]
+        )
+
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["backend-team", "frontend-team"]
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [backendTeam, frontendTeam]
+        )
+
+        // Should include PRs from both teams (OR logic for multiple teams)
+        #expect(result.count == 2)
+
+        let repos = Set(result.map { $0.repositoryName })
+        #expect(repos == ["Backend", "Frontend"])
     }
 
     @Test

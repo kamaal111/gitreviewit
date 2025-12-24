@@ -1,0 +1,46 @@
+[
+    {
+        "id": 1001,
+        "name": "Swift Core Team",
+        "slug": "swift-core",
+        "organization": {
+            "login": "apple"
+        },
+        "repositories": ["apple/swift", "apple/swift-evolution"],
+        "repositories_url": "https://api.github.com/teams/1001/repos",
+        "permission": "push"
+    },
+    {
+        "id": 1002,
+        "name": "Vapor Core Team",
+        "slug": "vapor-core",
+        "organization": {
+            "login": "vapor"
+        },
+        "repositories": ["vapor/vapor", "vapor/fluent"],
+        "repositories_url": "https://api.github.com/teams/1002/repos",
+        "permission": "admin"
+    },
+    {
+        "id": 1003,
+        "name": "Backend Team",
+        "slug": "backend-team",
+        "organization": {
+            "login": "CompanyA"
+        },
+        "repositories": ["CompanyA/backend-service", "CompanyA/api-gateway"],
+        "repositories_url": "https://api.github.com/teams/1003/repos",
+        "permission": "push"
+    },
+    {
+        "id": 1004,
+        "name": "Frontend Team",
+        "slug": "frontend-team",
+        "organization": {
+            "login": "CompanyA"
+        },
+        "repositories": ["CompanyA/frontend-app", "CompanyA/mobile-app"],
+        "repositories_url": "https://api.github.com/teams/1004/repos",
+        "permission": "push"
+    }
+]
