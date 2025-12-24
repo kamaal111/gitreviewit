@@ -28,8 +28,8 @@ struct FilterStateTests {
         // Should not update immediately (task scheduled but not awaited)
         #expect(state.searchQuery.isEmpty)
 
-        // Give the task a chance to complete
-        await Task.yield()
+        // Await the search task completion
+        await state.awaitSearchCompletion()
 
         #expect(state.searchQuery == "swift")
     }
@@ -45,8 +45,8 @@ struct FilterStateTests {
         // Update 2 immediately (cancels first)
         state.updateSearchQuery("swift")
 
-        // Give the task a chance to complete
-        await Task.yield()
+        // Await the search task completion
+        await state.awaitSearchCompletion()
 
         // Should be "swift", not "swif"
         #expect(state.searchQuery == "swift")
@@ -58,7 +58,7 @@ struct FilterStateTests {
         let state = FilterState(persistence: persistence, timeProvider: FakeTimeProvider())
 
         state.updateSearchQuery("something")
-        await Task.yield()
+        await state.awaitSearchCompletion()
         #expect(state.searchQuery == "something")
 
         state.clearSearchQuery()

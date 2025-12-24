@@ -8,7 +8,9 @@ import Testing
     private let api: GitHubAPIClient
     private let credentials = GitHubCredentials(token: "test-token", baseURL: "https://api.github.com")
 
-    init() { self.api = GitHubAPIClient(httpClient: mockHTTPClient) }
+    init() {
+        self.api = GitHubAPIClient(httpClient: mockHTTPClient)
+    }
 
     @Test func `fetchReviewRequests aggregates PRs including assignments and reviews`() async throws {
         // Prepare data
@@ -20,7 +22,7 @@ import Testing
         let teamsJSON = Data(
             """
             [
-                { "name": "Team A", "slug": "team-a", "organizationLogin": "org", "repositories": [] }
+                { "name": "Team A", "slug": "team-a", "organization": { "login": "org" }, "repositories": [] }
             ]
             """.utf8)
 
@@ -306,5 +308,70 @@ import Testing
         #expect(prs.first?.title == "User PR")
         // Should fetch teams (failed), then proceed with user search, assignee search, and reviewed search
         #expect(mockHTTPClient.performCallCount == 5)  // user, teams (failed), user-search, assigned, reviewed
+    }
+
+    // MARK: - fetchTeams Tests
+
+    @Test func `fetchTeams returns teams on success`() async throws {
+        // Prepare fixture data
+        let teamsJSON = try TestHelpers.loadFixture(.teamsFullResponse)
+
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: teamsJSON, statusCode: 200)
+
+        // Execute
+        let teams = try await api.fetchTeams(credentials: credentials)
+
+        // Verify
+        #expect(teams.count == 4)
+
+        let swiftCore = teams.first { $0.slug == "swift-core" }
+        #expect(swiftCore != nil)
+        #expect(swiftCore?.name == "Swift Core Team")
+        #expect(swiftCore?.organizationLogin == "apple")
+        #expect(swiftCore?.repositories == ["apple/swift", "apple/swift-evolution"])
+
+        let backendTeam = teams.first { $0.slug == "backend-team" }
+        #expect(backendTeam != nil)
+        #expect(backendTeam?.name == "Backend Team")
+        #expect(backendTeam?.organizationLogin == "CompanyA")
+        #expect(backendTeam?.repositories == ["CompanyA/backend-service", "CompanyA/api-gateway"])
+
+        #expect(mockHTTPClient.performCallCount == 1)
+    }
+
+    @Test func `fetchTeams throws unauthorized on 401`() async throws {
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: Data(), statusCode: 401)
+
+        // Execute and verify
+        await #expect(throws: APIError.self) {
+            try await api.fetchTeams(credentials: credentials)
+        }
+    }
+
+    @Test func `fetchTeams throws on 403 forbidden`() async throws {
+        let errorJSON = Data(
+            """
+            { "message": "Resource not accessible by integration" }
+            """.utf8)
+
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: errorJSON, statusCode: 403)
+
+        // Execute and verify
+        await #expect(throws: APIError.self) {
+            try await api.fetchTeams(credentials: credentials)
+        }
+    }
+
+    @Test func `fetchTeams returns empty array when no teams exist`() async throws {
+        let emptyTeamsJSON = Data("[]".utf8)
+
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: emptyTeamsJSON, statusCode: 200)
+
+        // Execute
+        let teams = try await api.fetchTeams(credentials: credentials)
+
+        // Verify
+        #expect(teams.isEmpty)
+        #expect(mockHTTPClient.performCallCount == 1)
     }
 }

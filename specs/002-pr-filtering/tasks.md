@@ -134,20 +134,20 @@
 
 ### Implementation for User Story 3
 
-- [ ] T039 [P] [US3] Extend GitHubAPI protocol with fetchTeams method in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift
-- [ ] T040 [US3] Implement fetchTeams in GitHubAPIClient (GET /user/teams, handle 403 gracefully) in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPIClient.swift
-- [ ] T041 [P] [US3] Create teams-full-response.json fixture with repository data in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/teams-full-response.json
-- [ ] T042 [P] [US3] Add fetchTeams unit tests covering success, 401, 403, empty teams in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/GitHubAPIClientTests.swift
-- [ ] T043 [US3] Add team filtering logic to FilterEngine (map teams to repos in Stage 1) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Services/FilterEngine.swift
-- [ ] T044 [P] [US3] Add FilterEngine unit tests for team filter and empty team metadata in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/FilterEngineTests.swift
-- [ ] T045 [US3] Add metadata property with LoadingState teams to FilterState in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/FilterState.swift
-- [ ] T046 [US3] Add updateMetadata method to FilterState that calls FilterMetadata.from and fetches teams in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/FilterState.swift
-- [ ] T047 [US3] Call filterState.updateMetadata when PRs load in PullRequestListContainer in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T048 [US3] Add Teams section to FilterSheet with unavailable message when teams can't load in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/FilterSheet.swift
-- [ ] T049 [US3] Handle team filter validation on relaunch (clear invalid team filters, show notice) in FilterState
-- [ ] T050 [US3] Create integration tests for team filtering scenarios in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRFilteringTests.swift
-- [ ] T051 [US3] Create integration tests for graceful degradation when teams unavailable in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRFilteringTests.swift
-- [ ] T052 [US3] Manual test: Verify team filtering works, graceful degradation on 403, other filters continue working, unavailable message clear
+- [X] T039 [P] [US3] Extend GitHubAPI protocol with fetchTeams method in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift
+- [X] T040 [US3] Implement fetchTeams in GitHubAPIClient (GET /user/teams, handle 403 gracefully) in app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPIClient.swift
+- [X] T041 [P] [US3] Create teams-full-response.json fixture with repository data in app/GitReviewItApp/Tests/GitReviewItAppTests/Fixtures/teams-full-response.json
+- [X] T042 [P] [US3] Add fetchTeams unit tests covering success, 401, 403, empty teams in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/GitHubAPIClientTests.swift
+- [X] T043 [US3] Add team filtering logic to FilterEngine (map teams to repos in Stage 1) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Services/FilterEngine.swift
+- [X] T044 [P] [US3] Add FilterEngine unit tests for team filter and empty team metadata in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/FilterEngineTests.swift
+- [X] T045 [US3] Add metadata property with LoadingState teams to FilterState in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/FilterState.swift
+- [X] T046 [US3] Add updateMetadata method to FilterState that calls FilterMetadata.from and fetches teams in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/FilterState.swift
+- [X] T047 [US3] Call filterState.updateMetadata when PRs load in PullRequestListContainer in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T048 [US3] Add Teams section to FilterSheet with unavailable message when teams can't load in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/FilterSheet.swift
+- [X] T049 [US3] Handle team filter validation on relaunch (clear invalid team filters, show notice) in FilterState
+- [X] T050 [US3] Create integration tests for team filtering scenarios in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRFilteringTests.swift
+- [X] T051 [US3] Create integration tests for graceful degradation when teams unavailable in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRFilteringTests.swift
+- [X] T052 [US3] Manual test: Verify team filtering works, graceful degradation on 403, other filters continue working, unavailable message clear
 
 **Checkpoint**: User Story 3 complete - team filtering functional with graceful degradation
 

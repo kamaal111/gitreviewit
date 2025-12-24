@@ -16,6 +16,7 @@ struct FilterSheet: View {
 
     @State private var selectedOrganizations: Set<String>
     @State private var selectedRepositories: Set<String>
+    @State private var selectedTeams: Set<String>
 
     private let syncService: FilterSyncService
 
@@ -35,6 +36,7 @@ struct FilterSheet: View {
 
         self._selectedOrganizations = State(initialValue: currentConfiguration.selectedOrganizations)
         self._selectedRepositories = State(initialValue: currentConfiguration.selectedRepositories)
+        self._selectedTeams = State(initialValue: currentConfiguration.selectedTeams)
     }
 
     var body: some View {
@@ -115,6 +117,9 @@ struct FilterSheet: View {
                             }
                         }
                     }
+
+                    // Teams section
+                    teamsSection
                 }
                 .padding()
             }
@@ -126,9 +131,10 @@ struct FilterSheet: View {
                 Button("Clear All") {
                     selectedOrganizations.removeAll()
                     selectedRepositories.removeAll()
+                    selectedTeams.removeAll()
                     onClearAll()
                 }
-                .disabled(selectedOrganizations.isEmpty && selectedRepositories.isEmpty)
+                .disabled(selectedOrganizations.isEmpty && selectedRepositories.isEmpty && selectedTeams.isEmpty)
 
                 Spacer()
 
@@ -142,7 +148,7 @@ struct FilterSheet: View {
                         version: 1,
                         selectedOrganizations: selectedOrganizations,
                         selectedRepositories: selectedRepositories,
-                        selectedTeams: []
+                        selectedTeams: selectedTeams
                     )
                     onApply(newConfiguration)
                 }
@@ -152,13 +158,96 @@ struct FilterSheet: View {
         }
         .frame(width: 400, height: 500)
     }
+
+    @ViewBuilder
+    private var teamsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Teams")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            switch metadata.teams {
+            case .idle:
+                Text("Loading teams...")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            case .loading:
+                HStack {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Loading teams...")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            case .loaded(let teams):
+                if teams.isEmpty {
+                    Text("No teams available")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                } else {
+                    ForEach(teams.sorted(by: { $0.name < $1.name })) { team in
+                        Toggle(
+                            isOn: Binding(
+                                get: { selectedTeams.contains(team.slug) },
+                                set: { isSelected in
+                                    if isSelected {
+                                        selectedTeams.insert(team.slug)
+                                    } else {
+                                        selectedTeams.remove(team.slug)
+                                    }
+                                }
+                            )
+                        ) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(team.name)
+                                Text(team.organizationLogin)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            case .failed(let error):
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Team filtering unavailable", systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Text(teamUnavailableMessage(for: error))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private func teamUnavailableMessage(for error: APIError) -> String {
+        switch error {
+        case .unauthorized:
+            return "Authentication required. Please sign in again."
+        case .httpError(let statusCode, _) where statusCode == 403:
+            return """
+                Requires additional permissions (read:org scope). Team filtering will work when you have access to \
+                organization data.
+                """
+        case .networkUnreachable:
+            return "Network unavailable. Team filtering will be available when connection is restored."
+        case .rateLimitExceeded:
+            return "API rate limit exceeded. Team filtering will be available after the limit resets."
+        default:
+            return "Unable to load teams. Organization and repository filters are still available."
+        }
+    }
 }
 
 #Preview {
     let metadata = FilterMetadata(
         organizations: ["CompanyA", "CompanyB", "PersonalOrg"],
         repositories: ["CompanyA/backend", "CompanyB/frontend", "PersonalOrg/hobby"],
-        teams: .idle
+        teams: .loaded([
+            Team(slug: "backend-team", name: "Backend Team", organizationLogin: "CompanyA", repositories: []),
+            Team(slug: "frontend-team", name: "Frontend Team", organizationLogin: "CompanyB", repositories: []),
+        ])
     )
 
     let config = FilterConfiguration(

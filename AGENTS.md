@@ -51,11 +51,30 @@
   - **DO**: Use `@Test` with backtick function names containing spaces and natural language
   - **DON'T**: Use `@Test("description")` with separate function names like `testSomething()`
   - Benefits: More readable test names in results, eliminates redundant naming, clearer intent
+- **Error Handling in Tests**:
+  - **ALWAYS** mark test functions with `throws` and let errors propagate naturally
+  - **NEVER** use `guard` with `Issue.record()` and early return - just throw or use `#require`
+  - **For optionals**: Use `#require(optional)` which unwraps and throws if nil
+  - **For expected errors**: Use `#expect(throws: ErrorType.self) { try code() }`
+  - Example:
+    ```swift
+    @Test func `loads fixture correctly`() throws {
+        let url = try #require(Bundle.module.url(forResource: "fixture", withExtension: "json"))
+        let data = try Data(contentsOf: url)  // throws if fails
+        let decoded = try JSONDecoder().decode(Model.self, from: data)
+        #expect(decoded.name == "Expected")
+    }
+    ```
+- **Test Helpers**: Use shared helper functions for common operations (e.g., `TestHelpers.loadFixture(.userResponse)` for loading JSON fixtures from test bundle). Never duplicate helper functions - add them to `TestHelpers.swift` instead.
 - **No Conditional Logic**: Tests must be linear and declarative.
   - **NEVER** use `if`, `guard`, `switch`, or `if case` statements to verify outcomes. Conditional test logic hides failures and makes tests hard to read.
   - **ALWAYS** use `#expect` directly with equality checks to assert state.
   - If a type is an enum with associated values, ensure it conforms to `Equatable` so you can compare it directly: `#expect(state == .loaded(value))`.
   - If conditional logic seems necessary, the test or the type's `Equatable` conformance likely needs refactoring. Tests should read like documentation.
+- **Async Testing**: For async operations, await completion deterministically:
+  - Use fake/mock time providers instead of real delays
+  - Provide test-only methods to await task completion (e.g., `awaitSearchCompletion()`)
+  - NEVER use `Task.sleep()` with real time in tests
 - Naming: Test structs use `FeatureNameTests` format (e.g., `FixtureTests`, `AuthenticationTests`)
 - Scope: Focus on view models and pure logic; UI verified via snapshots or previews as needed.
 - Running: From Xcode's Test action, via `just test`, or the CLI command above.

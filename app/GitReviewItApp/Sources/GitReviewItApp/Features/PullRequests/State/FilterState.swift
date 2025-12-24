@@ -43,7 +43,13 @@ final class FilterState {
 
     func clearSearchQuery() {
         searchTask?.cancel()
+        searchTask = nil
         searchQuery = ""
+    }
+
+    /// Await completion of any pending search query update. For testing purposes.
+    func awaitSearchCompletion() async {
+        await searchTask?.value
     }
 
     func updateFilterConfiguration(_ newConfiguration: FilterConfiguration) async {
@@ -86,5 +92,73 @@ final class FilterState {
 
     func updateMetadata(from pullRequests: [PullRequest]) {
         metadata = FilterMetadata.from(pullRequests: pullRequests)
+    }
+
+    func updateMetadata(
+        from pullRequests: [PullRequest],
+        api: GitHubAPI,
+        credentials: GitHubCredentials
+    ) async {
+        // Update organizations and repositories synchronously
+        let organizations = Set(pullRequests.map { $0.repositoryOwner })
+        let repositories = Set(pullRequests.map { $0.repositoryFullName })
+
+        // Set teams to loading state
+        metadata = FilterMetadata(
+            organizations: organizations,
+            repositories: repositories,
+            teams: .loading
+        )
+
+        // Fetch teams asynchronously
+        do {
+            let teams = try await api.fetchTeams(credentials: credentials)
+            metadata = FilterMetadata(
+                organizations: organizations,
+                repositories: repositories,
+                teams: .loaded(teams)
+            )
+        } catch {
+            guard
+                let apiError = error as? APIError
+            else {
+                logger.error("Failed to fetch teams with unexpected error: \(error.localizedDescription)")
+                metadata = FilterMetadata(
+                    organizations: organizations,
+                    repositories: repositories,
+                    teams: .failed(.unknown(error))
+                )
+                return
+            }
+
+            logger.warning("Failed to fetch teams: \(apiError.localizedDescription)")
+            metadata = FilterMetadata(
+                organizations: organizations,
+                repositories: repositories,
+                teams: .failed(apiError)
+            )
+
+            // Clear invalid team filters if teams unavailable
+            await clearInvalidTeamFilters()
+        }
+    }
+
+    private func clearInvalidTeamFilters() async {
+        guard
+            !configuration.selectedTeams.isEmpty
+        else {
+            return
+        }
+
+        logger.info("Clearing team filters due to unavailable team data")
+        let clearedConfig = FilterConfiguration(
+            version: configuration.version,
+            selectedOrganizations: configuration.selectedOrganizations,
+            selectedRepositories: configuration.selectedRepositories,
+            selectedTeams: []
+        )
+
+        await updateFilterConfiguration(clearedConfig)
+        errorMessage = "Team filtering is unavailable. Your team filter selections have been cleared."
     }
 }

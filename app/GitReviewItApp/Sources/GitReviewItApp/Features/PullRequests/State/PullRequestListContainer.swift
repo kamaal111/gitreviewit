@@ -37,7 +37,7 @@ final class PullRequestListContainer {
             configuration: filterState.configuration,
             searchQuery: filterState.searchQuery,
             to: allPRs,
-            teamMetadata: []
+            teamMetadata: filterState.metadata.teams.value ?? []
         )
     }
 
@@ -59,7 +59,13 @@ final class PullRequestListContainer {
 
             let pullRequests = try await githubAPI.fetchReviewRequests(credentials: credentials)
             loadingState = .loaded(pullRequests)
-            filterState.updateMetadata(from: pullRequests)
+
+            // Update metadata with teams
+            await filterState.updateMetadata(
+                from: pullRequests,
+                api: githubAPI,
+                credentials: credentials
+            )
         } catch let error as APIError {
             loadingState = .failed(error)
         } catch {
