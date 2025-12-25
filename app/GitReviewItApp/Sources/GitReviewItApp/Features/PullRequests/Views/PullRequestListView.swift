@@ -135,6 +135,21 @@ struct PullRequestListView: View {
             ToolbarItem(placement: .automatic) {
                 Button(
                     action: {
+                        Task {
+                            await container.loadPullRequests()
+                        }
+                    },
+                    label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                )
+                .accessibilityLabel("Refresh pull requests")
+                .disabled(container.loadingState == .loading)
+            }
+
+            ToolbarItem(placement: .automatic) {
+                Button(
+                    action: {
                         showingFilterSheet = true
                     },
                     label: {
