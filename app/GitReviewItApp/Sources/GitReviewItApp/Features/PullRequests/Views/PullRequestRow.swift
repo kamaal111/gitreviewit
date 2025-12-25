@@ -22,10 +22,29 @@ struct PullRequestRow: View {
                 .foregroundStyle(.secondary)
                 .accessibilityLabel("Repository: \(pullRequest.repositoryFullName)")
 
-            Text(pullRequest.title)
-                .font(.headline)
-                .lineLimit(2)
-                .accessibilityLabel("Title: \(pullRequest.title)")
+            HStack(spacing: 6) {
+                Text(pullRequest.title)
+                    .font(.headline)
+                    .lineLimit(2)
+
+                if pullRequest.isDraft {
+                    Text("DRAFT")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.secondary.opacity(0.15))
+                        )
+                        .accessibilityLabel("Draft")
+                }
+
+                Spacer()
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Title: \(pullRequest.title)\(pullRequest.isDraft ? ", Draft" : "")")
 
             HStack(spacing: 4) {
                 if let avatarURL = pullRequest.authorAvatarURL {

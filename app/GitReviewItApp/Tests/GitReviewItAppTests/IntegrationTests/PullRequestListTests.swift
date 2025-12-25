@@ -101,4 +101,50 @@ struct PullRequestListTests {
         #expect(container.loadingState == .loaded([]))
         #expect(mockGitHubAPI.fetchReviewRequestsCallCount == 2)
     }
+
+    @Test
+    func `Draft PRs are correctly marked`() async throws {
+        // Given
+        let credentials = GitHubCredentials(token: "token", baseURL: "https://api.github.com")
+        mockCredentialStorage.preloadCredentials(credentials)
+
+        let draftPR = PullRequest(
+            repositoryOwner: "owner",
+            repositoryName: "repo",
+            number: 1,
+            title: "WIP: Draft PR",
+            authorLogin: "author",
+            authorAvatarURL: nil,
+            updatedAt: Date(),
+            htmlURL: URL(string: "https://github.com/owner/repo/pull/1")!,
+            isDraft: true
+        )
+
+        let regularPR = PullRequest(
+            repositoryOwner: "owner",
+            repositoryName: "repo",
+            number: 2,
+            title: "Regular PR",
+            authorLogin: "author",
+            authorAvatarURL: nil,
+            updatedAt: Date(),
+            htmlURL: URL(string: "https://github.com/owner/repo/pull/2")!,
+            isDraft: false
+        )
+
+        mockGitHubAPI.pullRequestsToReturn = [draftPR, regularPR]
+
+        // When
+        await container.loadPullRequests()
+
+        // Then
+        guard case .loaded(let prs) = container.loadingState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+
+        #expect(prs.count == 2)
+        #expect(prs[0].isDraft == true)
+        #expect(prs[1].isDraft == false)
+    }
 }

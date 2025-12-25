@@ -308,6 +308,7 @@ final class GitHubAPIClient: GitHubAPI {
             htmlURL: item.html_url,
             commentCount: item.comments,
             labels: labels,
+            isDraft: item.draft ?? false,
             previewMetadata: nil
         )
     }
@@ -432,6 +433,7 @@ private struct SearchIssueItem: Decodable {
     let repository_url: String
     let comments: Int
     let labels: [SearchLabel]
+    let draft: Bool?
 }
 
 private struct SearchLabel: Decodable {
