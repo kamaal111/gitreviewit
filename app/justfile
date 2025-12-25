@@ -1,6 +1,7 @@
 set dotenv-load
 
 PROJECT := "GitReviewIt.xcodeproj"
+PROJECT_FILE := PROJECT / "project.pbxproj"
 SCHEME := "GitReviewIt"
 MACOS_PLATFORM := "platform=macOS"
 PAYLOAD := "payload"
@@ -143,6 +144,27 @@ create-notary-profile:
         --apple-id "$APPLE_ID_EMAIL" \
         --team-id "$APPLE_TEAM_ID" \
         --password "$APP_SPECIFIC_PASSWORD"
+
+# Bump version in Xcode project
+bump-version app_version build_number:
+    #!/bin/zsh
+    
+    set -e
+    
+    app_version="{{ app_version }}"
+    build_number="{{ build_number }}"
+    
+    echo "📦 Bumping version to $app_version (build $build_number)..."
+    
+    # Update MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.pbxproj
+    sed -i '' -E \
+        -e "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = $app_version;/g" \
+        -e "s/CURRENT_PROJECT_VERSION = [^;]+;/CURRENT_PROJECT_VERSION = $build_number;/g" \
+        {{ PROJECT_FILE }}
+    
+    echo "✅ Version updated in {{ PROJECT_FILE }}"
+    echo "   App Version: $app_version"
+    echo "   Build Number: $build_number"
 
 [private]
 sign-pkg:
