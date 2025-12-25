@@ -12,12 +12,12 @@
 
 **Goal**: Users can identify Draft PRs in the list.
 
-- [ ] T001 [US1] Update `PullRequest` model with `isDraft` property in `app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Models/PullRequest.swift`
-- [ ] T002 [US1] Update `SearchIssueItem` to decode `draft` field in `app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift`
-- [ ] T003 [US1] Update `mapSearchIssueToPullRequest` to map draft status in `app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift`
-- [ ] T004 [US1] Update `MockGitHubAPI` to support draft status in `app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift`
-- [ ] T005 [US1] Add integration test for draft status in `app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PullRequestListTests.swift`
-- [ ] T006 [US1] Update `PullRequestRow` to display draft badge in `app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift`
+- [X] T001 [US1] Update `PullRequest` model with `isDraft` property in `app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Models/PullRequest.swift`
+- [X] T002 [US1] Update `SearchIssueItem` to decode `draft` field in `app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift`
+- [X] T003 [US1] Update `mapSearchIssueToPullRequest` to map draft status in `app/GitReviewItApp/Sources/GitReviewItApp/Infrastructure/Networking/GitHubAPI.swift`
+- [X] T004 [US1] Update `MockGitHubAPI` to support draft status in `app/GitReviewItApp/Tests/GitReviewItAppTests/TestDoubles/MockGitHubAPI.swift`
+- [X] T005 [US1] Add integration test for draft status in `app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PullRequestListTests.swift`
+- [X] T006 [US1] Update `PullRequestRow` to display draft badge in `app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift`
 
 ## Phase 3: User Story 2 - View CI/Checks Summary (P1)
 

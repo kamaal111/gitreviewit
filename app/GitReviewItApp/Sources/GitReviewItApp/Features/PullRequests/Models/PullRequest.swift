@@ -37,6 +37,9 @@ struct PullRequest: Identifiable, Equatable, Sendable {
     /// Labels/tags applied to this PR (from Search API - always available, empty if no labels)
     let labels: [PRLabel]
 
+    /// Whether this PR is a draft (from Search API - always available)
+    let isDraft: Bool
+
     /// Preview metadata from PR Details API (loaded asynchronously, nil until fetched)
     var previewMetadata: PRPreviewMetadata?
 
@@ -57,6 +60,7 @@ struct PullRequest: Identifiable, Equatable, Sendable {
     ///   - htmlURL: GitHub web URL for opening PR
     ///   - commentCount: Number of comments (must be non-negative, defaults to 0)
     ///   - labels: Labels/tags applied (empty array if none, defaults to empty)
+    ///   - isDraft: Whether this PR is a draft (defaults to false)
     ///   - previewMetadata: Optional preview metadata from PR Details API (defaults to nil)
     init(
         repositoryOwner: String,
@@ -69,6 +73,7 @@ struct PullRequest: Identifiable, Equatable, Sendable {
         htmlURL: URL,
         commentCount: Int = 0,
         labels: [PRLabel] = [],
+        isDraft: Bool = false,
         previewMetadata: PRPreviewMetadata? = nil
     ) {
         precondition(!repositoryOwner.isEmpty, "Repository owner cannot be empty")
@@ -89,6 +94,7 @@ struct PullRequest: Identifiable, Equatable, Sendable {
         self.htmlURL = htmlURL
         self.commentCount = commentCount
         self.labels = labels
+        self.isDraft = isDraft
         self.previewMetadata = previewMetadata
     }
 }
