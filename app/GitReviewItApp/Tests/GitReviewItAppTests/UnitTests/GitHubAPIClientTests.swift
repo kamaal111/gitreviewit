@@ -374,4 +374,97 @@ import Testing
         #expect(teams.isEmpty)
         #expect(mockHTTPClient.performCallCount == 1)
     }
+
+    @Test func `fetchTeams deduplicates teams by fullSlug`() async throws {
+        // This can happen if the API returns the same team multiple times
+        // due to pagination or nested team memberships
+        let duplicateTeamsJSON = Data(
+            """
+            [
+                {
+                    "slug": "backend-team",
+                    "name": "Backend Team",
+                    "organization": { "login": "CompanyA" },
+                    "repositories": ["CompanyA/backend-service"]
+                },
+                {
+                    "slug": "backend-team",
+                    "name": "Backend Team",
+                    "organization": { "login": "CompanyA" },
+                    "repositories": ["CompanyA/backend-service"]
+                },
+                {
+                    "slug": "frontend-team",
+                    "name": "Frontend Team",
+                    "organization": { "login": "CompanyA" },
+                    "repositories": ["CompanyA/frontend-app"]
+                }
+            ]
+            """.utf8)
+
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: duplicateTeamsJSON, statusCode: 200)
+
+        // Execute
+        let teams = try await api.fetchTeams(credentials: credentials)
+
+        // Verify - should only have 2 unique teams, not 3
+        #expect(teams.count == 2)
+
+        let teamSlugs = Set(teams.map { $0.fullSlug })
+        #expect(teamSlugs.contains("CompanyA/backend-team"))
+        #expect(teamSlugs.contains("CompanyA/frontend-team"))
+        #expect(teamSlugs.count == 2)
+    }
+
+    @Test func `fetchTeams preserves teams with same slug in different organizations`() async throws {
+        // Teams can have the same slug in different organizations
+        // These should NOT be deduplicated as they're different teams
+        let teamsJSON = Data(
+            """
+            [
+                {
+                    "slug": "backend-team",
+                    "name": "Backend Team A",
+                    "organization": { "login": "CompanyA" },
+                    "repositories": ["CompanyA/backend-service"]
+                },
+                {
+                    "slug": "backend-team",
+                    "name": "Backend Team B",
+                    "organization": { "login": "CompanyB" },
+                    "repositories": ["CompanyB/backend-service"]
+                },
+                {
+                    "slug": "backend-team",
+                    "name": "Backend Team C",
+                    "organization": { "login": "CompanyC" },
+                    "repositories": ["CompanyC/backend-service"]
+                }
+            ]
+            """.utf8)
+
+        mockHTTPClient.setResponse(for: "https://api.github.com/user/teams", data: teamsJSON, statusCode: 200)
+
+        // Execute
+        let teams = try await api.fetchTeams(credentials: credentials)
+
+        // Verify - should have 3 teams since they're in different orgs
+        #expect(teams.count == 3)
+
+        let teamIDs = Set(teams.map { $0.id })
+        #expect(teamIDs.contains("CompanyA/backend-team"))
+        #expect(teamIDs.contains("CompanyB/backend-team"))
+        #expect(teamIDs.contains("CompanyC/backend-team"))
+        #expect(teamIDs.count == 3)
+
+        // Verify each team has the correct organization
+        let companyATeam = teams.first { $0.organizationLogin == "CompanyA" }
+        #expect(companyATeam?.name == "Backend Team A")
+
+        let companyBTeam = teams.first { $0.organizationLogin == "CompanyB" }
+        #expect(companyBTeam?.name == "Backend Team B")
+
+        let companyCTeam = teams.first { $0.organizationLogin == "CompanyC" }
+        #expect(companyCTeam?.name == "Backend Team C")
+    }
 }

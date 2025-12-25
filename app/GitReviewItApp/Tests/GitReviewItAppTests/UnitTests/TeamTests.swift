@@ -83,4 +83,70 @@ struct TeamTests {
         #expect(decoded.count == 1)
         #expect(decoded[0] == original)
     }
+
+    @Test
+    func `Team ID uses fullSlug for uniqueness across organizations`() {
+        let team1 = Team(
+            slug: "backend-team",
+            name: "Backend Team A",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/backend"]
+        )
+
+        let team2 = Team(
+            slug: "backend-team",
+            name: "Backend Team B",
+            organizationLogin: "CompanyB",
+            repositories: ["CompanyB/backend"]
+        )
+
+        // Teams with same slug but different orgs should have different IDs
+        #expect(team1.id != team2.id)
+        #expect(team1.id == "CompanyA/backend-team")
+        #expect(team2.id == "CompanyB/backend-team")
+
+        // Verify they are distinguishable by ID
+        let teams = [team1, team2]
+        let uniqueIDs = Set(teams.map { $0.id })
+        #expect(uniqueIDs.count == 2)
+    }
+
+    @Test
+    func `Teams with same slug in different orgs are not equal`() {
+        let team1 = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: []
+        )
+
+        let team2 = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyB",
+            repositories: []
+        )
+
+        #expect(team1 != team2)
+    }
+
+    @Test
+    func `Teams with different slugs in same org are not equal`() {
+        let team1 = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: []
+        )
+
+        let team2 = Team(
+            slug: "frontend-team",
+            name: "Frontend Team",
+            organizationLogin: "CompanyA",
+            repositories: []
+        )
+
+        #expect(team1 != team2)
+        #expect(team1.id != team2.id)
+    }
 }

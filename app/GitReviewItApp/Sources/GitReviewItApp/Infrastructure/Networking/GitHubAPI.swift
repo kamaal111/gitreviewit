@@ -85,7 +85,18 @@ final class GitHubAPIClient: GitHubAPI {
                 throw mapHTTPError(statusCode: response.statusCode, data: data, response: response)
             }
 
-            return try decoder.decode([Team].self, from: data)
+            let teams = try decoder.decode([Team].self, from: data)
+
+            // Deduplicate teams by fullSlug (org/slug) to prevent duplicates in UI
+            var uniqueTeams: [String: Team] = [:]
+            for team in teams {
+                guard uniqueTeams[team.fullSlug] == nil else {
+                    continue
+                }
+                uniqueTeams[team.fullSlug] = team
+            }
+
+            return Array(uniqueTeams.values)
         } catch let error as HTTPError {
             throw mapHTTPErrorToAPIError(error)
         } catch let error as APIError {

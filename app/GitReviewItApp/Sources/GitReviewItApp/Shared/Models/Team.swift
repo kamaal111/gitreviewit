@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct Team: Codable, Equatable, Identifiable {
+struct Team: Codable, Equatable, Identifiable, Hashable {
     let slug: String
     let name: String
     let organizationLogin: String
     let repositories: [String]
 
-    var id: String { slug }
+    var id: String { fullSlug }
 
     var fullSlug: String {
         "\(organizationLogin)/\(slug)"

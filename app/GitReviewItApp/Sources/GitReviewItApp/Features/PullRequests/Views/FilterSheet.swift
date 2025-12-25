@@ -198,7 +198,7 @@ struct FilterSheet: View {
                         .font(.caption)
                         .accessibilityLabel("No teams found")
                 } else {
-                    ForEach(teams.sorted(by: { $0.name < $1.name })) { team in
+                    ForEach(teams.sorted(by: { $0.name < $1.name }), id: \.fullSlug) { team in
                         Toggle(
                             isOn: Binding(
                                 get: { selectedTeams.contains(team.slug) },
