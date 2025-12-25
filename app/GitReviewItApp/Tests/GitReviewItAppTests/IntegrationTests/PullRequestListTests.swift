@@ -39,7 +39,13 @@ struct PullRequestListTests {
         await container.loadPullRequests()
 
         // Then
-        #expect(container.loadingState == .loaded([pr]))
+        guard case .loaded(let prs) = container.loadingState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+        #expect(prs.count == 1)
+        #expect(prs[0].repositoryOwner == "owner")
+        #expect(prs[0].number == 1)
         #expect(mockGitHubAPI.fetchReviewRequestsCallCount == 1)
     }
 

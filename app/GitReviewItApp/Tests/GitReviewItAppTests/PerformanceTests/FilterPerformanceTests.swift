@@ -219,7 +219,7 @@ struct FilterPerformanceTests {
     private func loadLargeFixture() throws -> [PullRequest] {
         let bundle = Bundle.module
         guard let url = bundle.url(forResource: "prs-with-varied-data", withExtension: "json"),
-            let data = try? Data(contentsOf: url)
+              let data = try? Data(contentsOf: url)
         else {
             throw NSError(
                 domain: "TestError", code: 1,
@@ -238,7 +238,7 @@ struct FilterPerformanceTests {
     private func loadSmallFixture() throws -> [PullRequest] {
         let bundle = Bundle.module
         guard let url = bundle.url(forResource: "prs-response", withExtension: "json"),
-            let data = try? Data(contentsOf: url)
+              let data = try? Data(contentsOf: url)
         else {
             throw NSError(
                 domain: "TestError", code: 1,

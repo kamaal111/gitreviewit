@@ -251,9 +251,9 @@ final class URLSessionHTTPClient: HTTPClient {
         case .badURL, .unsupportedURL:
             return .invalidURL
         case .secureConnectionFailed, .serverCertificateHasBadDate,
-            .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
-            .serverCertificateNotYetValid, .clientCertificateRejected,
-            .clientCertificateRequired:
+             .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
+             .serverCertificateNotYetValid, .clientCertificateRejected,
+             .clientCertificateRequired:
             return .sslError(error)
         case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
             return .dnsError

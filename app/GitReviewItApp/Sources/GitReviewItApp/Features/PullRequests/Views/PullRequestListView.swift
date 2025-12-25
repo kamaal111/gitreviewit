@@ -231,8 +231,8 @@ struct PullRequestListView: View {
                     hasActiveFilters && hasSearch
                         ? "No Matching Results"
                         : hasActiveFilters
-                            ? "No PRs Match Filters"
-                            : "No Search Results",
+                        ? "No PRs Match Filters"
+                        : "No Search Results",
                     systemImage: "magnifyingglass",
                     description: Text(emptyStateDescription(hasSearch: hasSearch))
                 )
@@ -275,60 +275,60 @@ struct PullRequestListView: View {
 }
 
 #if DEBUG
-    private struct PreviewGitHubAPI: GitHubAPI {
-        func fetchUser(credentials: GitHubCredentials) async throws -> AuthenticatedUser {
-            AuthenticatedUser(login: "kamaal111", name: "Kamaal", avatarURL: nil)
-        }
+private struct PreviewGitHubAPI: GitHubAPI {
+    func fetchUser(credentials: GitHubCredentials) async throws -> AuthenticatedUser {
+        AuthenticatedUser(login: "kamaal111", name: "Kamaal", avatarURL: nil)
+    }
 
-        func fetchTeams(credentials: GitHubCredentials) async throws -> [Team] { [] }
+    func fetchTeams(credentials: GitHubCredentials) async throws -> [Team] { [] }
 
-        func fetchReviewRequests(credentials: GitHubCredentials) async throws -> [PullRequest] {
-            [
-                PullRequest(
-                    repositoryOwner: "kamaal111",
-                    repositoryName: "GitReviewIt",
-                    number: 1,
-                    title: "Add Pull Request List Feature",
-                    authorLogin: "kamaal111",
-                    authorAvatarURL: nil,
-                    updatedAt: Date(),
-                    htmlURL: URL(string: "https://github.com/kamaal111/GitReviewIt/pull/1")!
-                )
-            ]
-        }
-
-        func fetchPRDetails(
-            owner: String,
-            repo: String,
-            number: Int,
-            credentials: GitHubCredentials
-        ) async throws -> PRPreviewMetadata {
-            PRPreviewMetadata(
-                additions: 145,
-                deletions: 23,
-                changedFiles: 7,
-                requestedReviewers: []
+    func fetchReviewRequests(credentials: GitHubCredentials) async throws -> [PullRequest] {
+        [
+            PullRequest(
+                repositoryOwner: "kamaal111",
+                repositoryName: "GitReviewIt",
+                number: 1,
+                title: "Add Pull Request List Feature",
+                authorLogin: "kamaal111",
+                authorAvatarURL: nil,
+                updatedAt: Date(),
+                htmlURL: URL(string: "https://github.com/kamaal111/GitReviewIt/pull/1")!
             )
-        }
+        ]
     }
 
-    private struct PreviewCredentialStorage: CredentialStorage {
-        func store(_ credentials: GitHubCredentials) async throws {}
-        func retrieve() async throws -> GitHubCredentials? {
-            GitHubCredentials(token: "token", baseURL: "https://api.github.com")
-        }
-        func delete() async throws {}
+    func fetchPRDetails(
+        owner: String,
+        repo: String,
+        number: Int,
+        credentials: GitHubCredentials
+    ) async throws -> PRPreviewMetadata {
+        PRPreviewMetadata(
+            additions: 145,
+            deletions: 23,
+            changedFiles: 7,
+            requestedReviewers: []
+        )
     }
+}
 
-    #Preview {
-        NavigationStack {
-            PullRequestListView(
-                container: PullRequestListContainer(
-                    githubAPI: PreviewGitHubAPI(),
-                    credentialStorage: PreviewCredentialStorage()
-                ),
-                onLogout: {}
-            )
-        }
+private struct PreviewCredentialStorage: CredentialStorage {
+    func store(_ credentials: GitHubCredentials) async throws {}
+    func retrieve() async throws -> GitHubCredentials? {
+        GitHubCredentials(token: "token", baseURL: "https://api.github.com")
     }
+    func delete() async throws {}
+}
+
+#Preview {
+    NavigationStack {
+        PullRequestListView(
+            container: PullRequestListContainer(
+                githubAPI: PreviewGitHubAPI(),
+                credentialStorage: PreviewCredentialStorage()
+            ),
+            onLogout: {}
+        )
+    }
+}
 #endif

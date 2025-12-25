@@ -17,6 +17,12 @@ final class MockGitHubAPI: GitHubAPI {
     /// Pull requests to return from fetchReviewRequests
     var pullRequestsToReturn: [PullRequest] = []
 
+    /// Convenience alias for pullRequestsToReturn
+    var pullRequests: [PullRequest] {
+        get { pullRequestsToReturn }
+        set { pullRequestsToReturn = newValue }
+    }
+
     /// Error to throw from fetchUser
     var fetchUserErrorToThrow: Error?
 
@@ -29,8 +35,22 @@ final class MockGitHubAPI: GitHubAPI {
     /// PR preview metadata to return from fetchPRDetails (keyed by "owner/repo#number")
     var prDetailsToReturn: [String: PRPreviewMetadata] = [:]
 
+    /// Convenience alias for prDetailsToReturn
+    var prDetailsResponses: [String: PRPreviewMetadata] {
+        get { prDetailsToReturn }
+        set { prDetailsToReturn = newValue }
+    }
+
+    /// Set of PR IDs that should fail when fetching details
+    var shouldFailPRDetails: Set<String> = []
+
     /// Error to throw from fetchPRDetails
     var fetchPRDetailsErrorToThrow: Error?
+
+    /// Convenience property for counting PR details fetches
+    var prDetailsFetchCount: Int {
+        fetchPRDetailsCallCount
+    }
 
     // MARK: - Captured Data
 
@@ -116,11 +136,17 @@ final class MockGitHubAPI: GitHubAPI {
     ) async throws -> PRPreviewMetadata {
         fetchPRDetailsRequests.append((owner, repo, number, credentials))
 
+        let key = "\(owner)/\(repo)#\(number)"
+
+        // Check if this PR should fail
+        if shouldFailPRDetails.contains(key) {
+            throw APIError.notFound
+        }
+
         if let error = fetchPRDetailsErrorToThrow {
             throw error
         }
 
-        let key = "\(owner)/\(repo)#\(number)"
         guard let metadata = prDetailsToReturn[key] else {
             // Return default metadata if not configured
             return PRPreviewMetadata(
@@ -150,6 +176,7 @@ final class MockGitHubAPI: GitHubAPI {
         prDetailsToReturn.removeAll()
         fetchPRDetailsErrorToThrow = nil
         fetchPRDetailsRequests.removeAll()
+        shouldFailPRDetails.removeAll()
     }
 
     /// Get the last credentials used for fetchUser
