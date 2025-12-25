@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2025-12-20
 ## Active Technologies
 - Swift 6.0 with strict concurrency checking + None (stdlib only) (002-pr-filtering)
 - UserDefaults for filter persistence; Keychain already used for credentials (002-pr-filtering)
+- Swift 6.0 (strict concurrency enabled) + None (stdlib + Foundation only) (003-pr-preview-metadata)
+- Keychain (for credentials via Security.framework), UserDefaults (for filter preferences) (003-pr-preview-metadata)
 
 - Swift 6.0 (latest stable) + None (stdlib + Foundation + Security framework for Keychain) (001-github-pr-viewer)
 
@@ -24,6 +26,7 @@ tests/
 Swift 6.0 (latest stable): Follow standard conventions
 
 ## Recent Changes
+- 003-pr-preview-metadata: Added Swift 6.0 (strict concurrency enabled) + None (stdlib + Foundation only)
 - 002-pr-filtering: Added Swift 6.0 with strict concurrency checking + None (stdlib only)
 
 - 001-github-pr-viewer: Added Swift 6.0 (latest stable) + None (stdlib + Foundation + Security framework for Keychain)
