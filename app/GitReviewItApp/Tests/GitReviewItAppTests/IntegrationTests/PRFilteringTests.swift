@@ -369,7 +369,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team"]
+            selectedTeams: ["CompanyA/backend-team"]
         )
 
         let result = engine.apply(
@@ -407,7 +407,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team", "frontend-team"]
+            selectedTeams: ["CompanyA/backend-team", "CompanyA/frontend-team"]
         )
 
         let result = engine.apply(
@@ -432,7 +432,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team"]
+            selectedTeams: ["CompanyA/backend-team"]
         )
 
         // No teams available - simulates graceful degradation
@@ -463,7 +463,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["infra-team"]
+            selectedTeams: ["CompanyA/infra-team"]
         )
 
         let result = engine.apply(
@@ -496,7 +496,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: ["CompanyA"],
             selectedRepositories: [],
-            selectedTeams: ["backend-team"]
+            selectedTeams: ["CompanyA/backend-team"]
         )
 
         let result = engine.apply(
@@ -528,7 +528,7 @@ struct PRFilteringTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team"]
+            selectedTeams: ["CompanyA/backend-team"]
         )
 
         let result = engine.apply(
@@ -541,6 +541,54 @@ struct PRFilteringTests {
         #expect(result.count == 1)
         #expect(result.first?.repositoryFullName == "CompanyA/backend")
         #expect(result.first?.title == "Fix API bug")
+    }
+
+    @Test
+    func `Teams with same name in different orgs are filtered independently`() {
+        // Regression test: Selecting "backend-team" from CompanyA should not select
+        // "backend-team" from CompanyB (issue where team.slug was used instead of team.fullSlug)
+        let pr1 = makePR(owner: "CompanyA", repo: "service-a")
+        let pr2 = makePR(owner: "CompanyB", repo: "service-b")
+        let pr3 = makePR(owner: "CompanyC", repo: "service-c")
+
+        let companyABackendTeam = Team(
+            slug: "backend-team",
+            name: "Backend Team",
+            organizationLogin: "CompanyA",
+            repositories: ["CompanyA/service-a"]
+        )
+
+        let companyBBackendTeam = Team(
+            slug: "backend-team",  // Same slug, different org
+            name: "Backend Team",
+            organizationLogin: "CompanyB",
+            repositories: ["CompanyB/service-b"]
+        )
+
+        // Only select CompanyA's backend-team, NOT CompanyB's
+        let config = FilterConfiguration(
+            version: 1,
+            selectedOrganizations: [],
+            selectedRepositories: [],
+            selectedTeams: ["CompanyA/backend-team"]  // fullSlug format: org/slug
+        )
+
+        let result = engine.apply(
+            configuration: config,
+            searchQuery: "",
+            to: [pr1, pr2, pr3],
+            teamMetadata: [companyABackendTeam, companyBBackendTeam]
+        )
+
+        // Should only include PRs from CompanyA's backend-team
+        #expect(result.count == 1)
+        #expect(result.first?.repositoryFullName == "CompanyA/service-a")
+        #expect(result.first?.repositoryOwner == "CompanyA")
+
+        // Verify CompanyB's repos are NOT included
+        let owners = Set(result.map { $0.repositoryOwner })
+        #expect(owners == ["CompanyA"])
+        #expect(!owners.contains("CompanyB"))
     }
 
     // MARK: - Helper

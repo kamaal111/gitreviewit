@@ -88,7 +88,7 @@ struct FilterEngineTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team"]
+            selectedTeams: ["OrgA/backend-team"]
         )
 
         let result = engine.apply(
@@ -150,7 +150,7 @@ struct FilterEngineTests {
             version: 1,
             selectedOrganizations: [],
             selectedRepositories: [],
-            selectedTeams: ["backend-team", "frontend-team"]
+            selectedTeams: ["OrgA/backend-team", "OrgA/frontend-team"]
         )
 
         let result = engine.apply(

@@ -109,7 +109,7 @@ struct FilterEngine: FilterEngineProtocol {
         if !configuration.selectedTeams.isEmpty {
             let teamRepositories = Set(
                 teamMetadata
-                    .filter { configuration.selectedTeams.contains($0.slug) }
+                    .filter { configuration.selectedTeams.contains($0.fullSlug) }
                     .flatMap { $0.repositories }
             )
             filtered = filtered.filter { teamRepositories.contains($0.repositoryFullName) }

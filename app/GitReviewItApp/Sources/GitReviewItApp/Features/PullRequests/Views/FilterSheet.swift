@@ -201,12 +201,12 @@ struct FilterSheet: View {
                     ForEach(teams.sorted(by: { $0.name < $1.name }), id: \.fullSlug) { team in
                         Toggle(
                             isOn: Binding(
-                                get: { selectedTeams.contains(team.slug) },
+                                get: { selectedTeams.contains(team.fullSlug) },
                                 set: { isSelected in
                                     if isSelected {
-                                        selectedTeams.insert(team.slug)
+                                        selectedTeams.insert(team.fullSlug)
                                     } else {
-                                        selectedTeams.remove(team.slug)
+                                        selectedTeams.remove(team.fullSlug)
                                     }
                                 }
                             )

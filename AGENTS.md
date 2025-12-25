@@ -41,6 +41,12 @@
 
 ## Testing Guidelines
 - Framework: Swift Testing (using `@Test` attribute). Tests are in the Swift Package at `app/GitReviewItApp/Tests/GitReviewItAppTests/`.
+- **Test-Driven Development (TDD) for Bug Fixes**: When fixing a bug:
+  1. **FIRST**: Write a failing test that reproduces the bug
+  2. **THEN**: Fix the code to make the test pass
+  3. **FINALLY**: Refactor if needed while keeping tests green
+  - This ensures the bug is properly understood and prevents regression
+  - The test serves as documentation of the issue and its fix
 - **Test Syntax**: Use backtick function names for readable test descriptions:
   ```swift
   @Test
