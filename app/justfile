@@ -126,6 +126,10 @@ open:
 lint:
     swiftlint lint --config ../.swiftlint.yml --no-cache --strict
 
+# Auto-fix linting issues
+lint-fix:
+    swiftlint --fix --config ../.swiftlint.yml
+
 # Bootstrap app for development
 bootstrap: install-tools
 

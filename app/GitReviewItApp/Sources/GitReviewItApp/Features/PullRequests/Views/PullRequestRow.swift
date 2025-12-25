@@ -46,6 +46,10 @@ struct PullRequestRow: View {
                 Text(relativeTime)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Spacer()
+
+                PreviewMetadataView(previewMetadata: pullRequest.previewMetadata)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Created by \(pullRequest.authorLogin), \(relativeTime)")

@@ -61,16 +61,16 @@ All foundational models and infrastructure that multiple user stories depend on.
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Add enrichPreviewMetadata method to PullRequestListContainer for parallel metadata fetching in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T021 [US1] Add metadata caching logic (metadataCache dictionary by PR ID) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T022 [US1] Add clearMetadataCache method and integrate with loadPullRequests in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
-- [ ] T023 [P] [US1] Create PreviewMetadataView SwiftUI component for displaying change stats in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
-- [ ] T024 [US1] Update PullRequestRow to display change size preview (additions/deletions/changed files) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift
-- [ ] T025 [P] [US1] Add integration test for metadata enrichment workflow in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRPreviewMetadataTests.swift
-- [ ] T026 [P] [US1] Add unit tests for enrichPreviewMetadata success/failure scenarios in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/PullRequestListTests.swift
-- [ ] T027 [US1] Add graceful handling for unavailable change stats (display "—" when previewMetadata is nil) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
-- [ ] T028 [P] [US1] Add accessibility labels for change size data (VoiceOver support) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
-- [ ] T029 [P] [US1] Add OSLog statements for metadata enrichment operations in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T020 [US1] Add enrichPreviewMetadata method to PullRequestListContainer for parallel metadata fetching in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T021 [US1] Add metadata caching logic (metadataCache dictionary by PR ID) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T022 [US1] Add clearMetadataCache method and integrate with loadPullRequests in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
+- [X] T023 [P] [US1] Create PreviewMetadataView SwiftUI component for displaying change stats in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
+- [X] T024 [US1] Update PullRequestRow to display change size preview (additions/deletions/changed files) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PullRequestRow.swift
+- [X] T025 [P] [US1] Add integration test for metadata enrichment workflow in app/GitReviewItApp/Tests/GitReviewItAppTests/IntegrationTests/PRPreviewMetadataTests.swift
+- [X] T026 [P] [US1] Add unit tests for enrichPreviewMetadata success/failure scenarios in app/GitReviewItApp/Tests/GitReviewItAppTests/UnitTests/PullRequestListTests.swift
+- [X] T027 [US1] Add graceful handling for unavailable change stats (display "—" when previewMetadata is nil) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
+- [X] T028 [P] [US1] Add accessibility labels for change size data (VoiceOver support) in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/Views/PreviewMetadataView.swift
+- [X] T029 [P] [US1] Add OSLog statements for metadata enrichment operations in app/GitReviewItApp/Sources/GitReviewItApp/Features/PullRequests/State/PullRequestListContainer.swift
 
 **Checkpoint**: User Story 1 complete - change size data visible in PR list, independently testable
 

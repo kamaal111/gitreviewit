@@ -14,6 +14,8 @@
 - Quick build: `cd app && just build` (compiles the app).
 - Clean build: `cd app && just clean-build` (removes artifacts and compiles fresh).
 - Run tests: `cd app && just test` (when tests exist).
+- Run linter: `cd app && just lint` (checks for style violations).
+- Auto-fix linting: `cd app && just lint-fix` (automatically fixes common style violations).
 - Open in Xcode: `cd app && just open` or `open app/GitReviewIt.xcodeproj` (build and run with the default scheme).
 - CLI build (manual): `cd app && xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' build` (compiles the app).
 - CLI tests (manual): `cd app && xcodebuild -project GitReviewIt.xcodeproj -scheme GitReviewIt -destination 'platform=macOS' test`.
@@ -99,7 +101,7 @@
 
 ## Agent-Specific Notes
 - **MANDATORY**: Before completing any task that involves code changes, YOU MUST RUN `cd app && just test` to verify that the project builds and all tests pass. Fix any errors before proceeding.
-- **MANDATORY**: Run `just lint` to check for style violations and fix them before finishing your task. Ensure that `just lint` succeeds (no warnings or errors).
+- **MANDATORY**: Run `just lint` to check for style violations. Use `just lint-fix` to automatically fix common violations (e.g., trailing whitespace), then run `just lint` again to ensure no warnings or errors remain.
 - **MANDATORY**: Never perform git operations (commit, push, force-push, stash, etc.) on behalf of the user. Instead, prepare changes and ask for explicit permission before any commit or push; prefer providing the exact git commands for the maintainer to run locally.
 - **CRITICAL - NEVER USE CAT/HEREDOC**: NEVER use `cat > file << 'EOF'` or any heredoc syntax to create or edit files. This consistently crashes terminals, corrupts files, and creates broken code. ALWAYS use `create_file` or `replace_string_in_file` tools instead. This is a hard rule with no exceptions.
 - The repository ships with Speckit prompts/templates (`.github`, `.specify`). Keep templates intact; add feature specs/plans under the provided structure when expanding the app.

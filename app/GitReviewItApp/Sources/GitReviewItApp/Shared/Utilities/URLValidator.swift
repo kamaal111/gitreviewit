@@ -12,7 +12,7 @@ enum URLValidator {
         guard let url = URL(string: trimmed) else { return false }
 
         guard let scheme = url.scheme?.lowercased(),
-            scheme == "http" || scheme == "https"
+              scheme == "http" || scheme == "https"
         else {
             return false
         }

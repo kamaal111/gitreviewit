@@ -129,7 +129,11 @@ struct ErrorHandlingTests {
         await container.retry()
 
         // Assert 2
-        #expect(
-            container.loadingState == .loaded([pr]), "State should be loaded with PR after retry")
+        guard case .loaded(let prs) = container.loadingState else {
+            Issue.record("Expected loaded state after retry")
+            return
+        }
+        #expect(prs.count == 1, "Should have 1 PR after retry")
+        #expect(prs[0].repositoryOwner == "owner", "PR should match")
     }
 }

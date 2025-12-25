@@ -32,6 +32,10 @@ open:
 lint:
     just app/lint
 
+# Auto-fix linting issues (delegates to `app/lint-fix`)
+lint-fix:
+    just app/lint-fix
+
 # Generate Sparkle update keys for app signing (delegates to `app/generate-sparkle-keys`)
 generate-sparkle-keys:
     just app/generate-sparkle-keys
