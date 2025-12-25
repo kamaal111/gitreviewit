@@ -1,0 +1,27 @@
+PN := "PNPM"
+PNR := PN + " run"
+
+# Default recipe - shows available commands
+default:
+    @just --list --unsorted
+
+# Publish to GitHub Pages
+publish: prepare
+    {{ PNR }} publish
+
+# Bootstrap web (ensure pnpm and install modules)
+bootstrap: install-pnpm prepare
+
+# Prepare web dependencies (install modules)
+prepare: install-modules
+
+# Enable corepack and activate pnpm
+[private]
+install-pnpm:
+    corepack enable
+    corepack prepare pnpm@latest --activate
+
+# Install project dependencies using pnpm
+[private]
+install-modules:
+    {{ PN }} install

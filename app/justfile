@@ -128,21 +128,25 @@ lint:
 # Bootstrap app for development
 bootstrap: install-tools
 
+# Prepare the output directory for build artifacts
 [private]
 prepare-output:
     #!/bin/zsh
 
     mkdir -p {{ OUTPUT }}
 
+# Remove build payload and output artifacts
 [private]
 clean-artifacts:
     #!/bin/zsh
 
     rm -rf $PAYLOAD {{ OUTPUT }} || exit 1
 
+# Install required developer tools for building
 [private]
 install-tools: install-xcpretty
 
+# Ensure `xcpretty` (and related build tools) are installed
 [private]
 install-xcpretty:
     #!/bin/zsh

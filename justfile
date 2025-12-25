@@ -2,42 +2,35 @@
 default:
     @just --list --unsorted
 
-# Create .pkg
+# Build a signed .pkg for distribution (runs `app/create-pkg`)
 create-pkg:
     just app/create-pkg
 
-# Create app
+# Build and export the macOS `.app` (runs `app/create-app`)
 create-app:
     just app/create-app
 
-# Archive app
-archive:
-    just app/archive
+# Publish the web package (delegates to `web/publish`)
+publish:
+    just web/publish
 
-# Build the project for macOS
-build:
-    just app/build
-
-# Clean and build the project
-clean-build:
-    just app/clean-build
-
-# Run tests
+# Run the test suite (delegates to `app/test`)
 test:
     just app/test
 
-# Clean the build artifacts
+# Clean build artifacts (delegates to `app/clean`)
 clean:
     just app/clean
 
-# Open the project in Xcode
+# Open the Xcode project (delegates to `app/open`)
 open:
     just app/open
 
-# Lint the code
+# Run linters and style checks (delegates to `app/lint`)
 lint:
-    swiftlint lint --no-cache
+    just app/lint
 
-# Bootstrap app for development
+# Bootstrap app and web for development
 bootstrap:
     just app/bootstrap
+    just web/bootstrap

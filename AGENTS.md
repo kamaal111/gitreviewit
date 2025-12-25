@@ -100,6 +100,7 @@
 ## Agent-Specific Notes
 - **MANDATORY**: Before completing any task that involves code changes, YOU MUST RUN `cd app && just test` to verify that the project builds and all tests pass. Fix any errors before proceeding.
 - **MANDATORY**: Run `just lint` to check for style violations and fix them before finishing your task. Ensure that `just lint` succeeds (no warnings or errors).
+- **MANDATORY**: Never perform git operations (commit, push, force-push, stash, etc.) on behalf of the user. Instead, prepare changes and ask for explicit permission before any commit or push; prefer providing the exact git commands for the maintainer to run locally.
 - **CRITICAL - NEVER USE CAT/HEREDOC**: NEVER use `cat > file << 'EOF'` or any heredoc syntax to create or edit files. This consistently crashes terminals, corrupts files, and creates broken code. ALWAYS use `create_file` or `replace_string_in_file` tools instead. This is a hard rule with no exceptions.
 - The repository ships with Speckit prompts/templates (`.github`, `.specify`). Keep templates intact; add feature specs/plans under the provided structure when expanding the app.
 
