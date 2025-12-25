@@ -9,8 +9,16 @@ let package = Package(
     products: [
         .library(name: "GitReviewItApp", targets: ["GitReviewItApp"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", .upToNextMajor(from: "2.8.1"))
+    ],
     targets: [
-        .target(name: "GitReviewItApp"),
+        .target(
+            name: "GitReviewItApp",
+            dependencies: [
+                "Sparkle"
+            ]
+        ),
         .testTarget(
             name: "GitReviewItAppTests",
             dependencies: ["GitReviewItApp"],
